@@ -14,11 +14,11 @@ export default function TopHeader() {
           <LayoutGrid className="h-[17px] w-[17px]" />
         </button>
         <div className="h-5 w-px bg-white/15" />
-        <span className="text-sm text-white/65">Admin</span>
+        <span style={{ color: 'rgba(255,255,255,.65)', fontSize: 13 }}>Admin</span>
       </div>
 
       {/* Center logo */}
-      <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 text-white font-bold text-[17px] tracking-tight">
+      <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 text-white font-bold" style={{ fontSize: 17, letterSpacing: '-.3px' }}>
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
           <path d="M12 2L2 7l10 5 10-5-10-5z" fill="white" />
           <path d="M2 17l10 5 10-5M2 12l10 5 10-5" stroke="white" strokeWidth="1.5" strokeLinecap="round" fill="none" opacity=".7" />
@@ -39,7 +39,7 @@ export default function TopHeader() {
         <button className="flex h-[34px] w-[34px] items-center justify-center rounded-md text-white/70 hover:bg-white/10 hover:text-white transition-colors">
           <HelpCircle className="h-[17px] w-[17px]" />
         </button>
-        <div className="h-5 w-px bg-white/15 mx-1" />
+        <div className="h-5 w-px bg-white/15" />
         <button className="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-white/10 transition-colors cursor-pointer">
           <div className="text-right">
             <div className="text-[12.5px] font-semibold text-white leading-tight">Gerald Ashby</div>
