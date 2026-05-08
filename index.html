@@ -1,0 +1,1656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Trust Center | NICE CXone Mpower</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,'Segoe UI',Arial,sans-serif;font-size:13px;background:#F2F4F7;color:#1F2937;height:100vh;overflow:hidden}
+.top-header{position:fixed;top:0;left:0;right:0;height:48px;background:#0B2D55;display:flex;align-items:center;justify-content:space-between;padding:0 16px;z-index:1000}
+.header-logo{display:flex;align-items:center;gap:8px;color:white;font-size:17px;font-weight:700;letter-spacing:-.3px;position:absolute;left:50%;transform:translateX(-50%)}
+.hico{width:34px;height:34px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.7);transition:all .15s;position:relative}
+.hico:hover{background:rgba(255,255,255,.1);color:white}
+.hbadge{position:absolute;top:3px;right:3px;width:16px;height:16px;background:#EF4444;border-radius:50%;font-size:9px;font-weight:700;color:white;display:flex;align-items:center;justify-content:center;border:2px solid #0B2D55}
+.huser{display:flex;align-items:center;gap:8px;cursor:pointer;padding:4px 8px;border-radius:6px;transition:background .15s}
+.huser:hover{background:rgba(255,255,255,.1)}
+.avatar{width:30px;height:30px;border-radius:50%;background:#1D4ED8;color:white;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.sidebar{position:fixed;top:48px;left:0;width:216px;height:calc(100vh - 48px);background:white;border-right:1px solid #E5E7EB;overflow-y:auto;z-index:100;display:flex;flex-direction:column}
+.sec-title{padding:10px 16px 4px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#9CA3AF;border-top:1px solid #F3F4F6;margin-top:4px}
+.sec-title:first-of-type{border-top:none;margin-top:0}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 16px;cursor:pointer;color:#4B5563;font-size:13px;font-weight:500;border-left:3px solid transparent;transition:all .12s;white-space:nowrap}
+.nav-item:hover{background:#F9FAFB;color:#1F2937}
+.nav-item.active{background:#EFF6FF;color:#1D4ED8;border-left-color:#2563EB;font-weight:600}
+.nav-item.disabled{color:#D1D5DB;cursor:default}
+.nav-item.disabled:hover{background:none}
+.nbadge{margin-left:auto;background:#FEE2E2;color:#DC2626;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px}
+.h2tag{font-size:10px;background:#FEF3C7;color:#92400E;padding:1px 5px;border-radius:3px;margin-left:auto}
+.main-content{margin-left:216px;margin-top:48px;height:calc(100vh - 48px);overflow-y:auto;overflow-x:hidden;background:#F2F4F7;min-width:0}
+.view{display:none;padding:20px 24px;min-height:100%}
+.view.active{display:block}
+.breadcrumb{font-size:11.5px;color:#6B7280;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.blink{color:#2563EB;cursor:pointer}
+.blink:hover{text-decoration:underline}
+.page-title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.page-title{font-size:20px;font-weight:700;color:#111827;display:flex;align-items:center;gap:10px;white-space:nowrap;flex-shrink:0;min-width:0}
+.page-title-row{flex-wrap:wrap}
+.wiz-foot{display:flex;justify-content:space-between;align-items:center;padding:14px 24px;border-top:1px solid #E5E7EB;background:#FAFBFF}
+.wiz-foot .step-ind{font-size:12px;color:#6B7280;font-weight:600}
+.sbadge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:12px;font-size:11.5px;font-weight:600}
+.s-active{background:#DCFCE7;color:#15803D}
+.s-warn{background:#FEF3C7;color:#92400E}
+.s-error{background:#FEE2E2;color:#DC2626}
+.card{background:white;border:1px solid #E5E7EB;border-radius:8px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.card-title{font-size:13.5px;font-weight:700;color:#111827}
+.kpi-card{background:white;border:1px solid #E5E7EB;border-radius:8px;padding:16px 20px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.kpi-label{font-size:11px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+.kpi-value{font-size:30px;font-weight:700;color:#111827;line-height:1;margin-bottom:6px}
+.kpi-change{font-size:12px;display:flex;align-items:center;gap:4px}
+.kup{color:#15803D}.kdown{color:#DC2626}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 16px;border-radius:5px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:all .15s;white-space:nowrap}
+.btn-primary{background:#2563EB;color:white;border-color:#2563EB}
+.btn-primary:hover{background:#1D4ED8}
+.btn-secondary{background:white;color:#374151;border-color:#D1D5DB}
+.btn-secondary:hover{background:#F9FAFB}
+.btn-success{background:#16A34A;color:white}
+.btn-success:hover{background:#15803D}
+.btn-sm{padding:4px 10px;font-size:12px}
+.btn-lg{padding:10px 24px;font-size:14px}
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{text-align:left;padding:10px 14px;font-size:11px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;background:#F9FAFB;border-bottom:2px solid #E5E7EB;white-space:nowrap}
+.data-table td{padding:10px 14px;font-size:12.5px;color:#374151;border-bottom:1px solid #F3F4F6;vertical-align:middle}
+.data-table tbody tr:hover{background:#F9FAFB}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600}
+.bg{background:#DCFCE7;color:#15803D}.br{background:#FEE2E2;color:#DC2626}
+.by{background:#FEF3C7;color:#92400E}.bb{background:#DBEAFE;color:#1D4ED8}
+.bp{background:#EDE9FE;color:#6D28D9}.bt{background:#CCFBF1;color:#0F766E}
+.bgr{background:#F3F4F6;color:#4B5563}
+.form-input{width:100%;padding:8px 12px;border:1px solid #D1D5DB;border-radius:5px;font-size:13px;color:#1F2937;background:white;outline:none;transition:border-color .15s,box-shadow .15s}
+.form-input:focus{border-color:#2563EB;box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.form-input::placeholder{color:#9CA3AF}
+.form-select{appearance:none;background-image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");background-position:right 8px center;background-repeat:no-repeat;background-size:16px;padding-right:32px}
+.form-label{display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px}
+.srch{position:relative}
+.srch svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#9CA3AF;pointer-events:none}
+.srch .form-input{padding-left:34px}
+.wiz-bar{display:flex;align-items:flex-start;gap:0;padding:20px 32px;background:white;border-bottom:1px solid #E5E7EB}
+.wiz-step{display:flex;flex-direction:column;align-items:center;flex:1}
+.wiz-step:last-child{flex:none}
+.wiz-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.sp .wiz-dot{background:white;border:2px solid #D1D5DB;color:#9CA3AF}
+.sa .wiz-dot{background:#2563EB;border:2px solid #2563EB;color:white}
+.sd .wiz-dot{background:#16A34A;border:2px solid #16A34A;color:white}
+.wiz-lbl{font-size:11px;font-weight:600;margin-top:5px;text-align:center}
+.sp .wiz-lbl{color:#9CA3AF}.sa .wiz-lbl{color:#2563EB}.sd .wiz-lbl{color:#16A34A}
+.wiz-line{flex:1;height:2px;background:#E5E7EB;margin-top:14px}
+.wiz-line.done{background:#16A34A}
+.wiz-content{display:none;padding:24px}.wiz-content.active{display:block}
+.toggle-sw{position:relative;width:40px;height:22px;flex-shrink:0}
+.toggle-sw input{opacity:0;width:0;height:0;position:absolute}
+.tslider{position:absolute;inset:0;background:#D1D5DB;border-radius:11px;cursor:pointer;transition:background .2s}
+.tslider:before{content:'';position:absolute;width:16px;height:16px;left:3px;top:3px;background:white;border-radius:50%;transition:transform .2s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.toggle-sw input:checked + .tslider{background:#2563EB}
+.toggle-sw input:checked + .tslider:before{transform:translateX(18px)}
+.nlq-box{background:white;border:2px solid #E5E7EB;border-radius:10px;display:flex;align-items:flex-start;gap:12px;padding:14px 16px;box-shadow:0 2px 8px rgba(0,0,0,.06);transition:border-color .15s}
+.nlq-box:focus-within{border-color:#2563EB;box-shadow:0 0 0 3px rgba(37,99,235,.08)}
+.nlq-ta{flex:1;border:none;outline:none;font-size:14px;color:#1F2937;resize:none;min-height:24px;line-height:1.5;font-family:inherit}
+.nlq-ta::placeholder{color:#9CA3AF}
+.nlq-chip{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:white;border:1px solid #E5E7EB;border-radius:20px;font-size:12px;color:#4B5563;cursor:pointer;transition:all .12s;white-space:nowrap}
+.nlq-chip:hover{background:#EFF6FF;border-color:#93C5FD;color:#1D4ED8}
+.nlq-result{background:white;border:1px solid #E5E7EB;border-radius:8px;overflow:hidden;margin-top:16px;animation:fadeUp .2s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.pol-card{background:white;border:1px solid #E5E7EB;border-radius:8px;padding:14px 16px;display:flex;align-items:center;gap:14px;box-shadow:0 1px 2px rgba(0,0,0,.04);cursor:pointer;transition:border-color .15s,box-shadow .15s;margin-bottom:10px}
+.pol-card:hover{border-color:#93C5FD;box-shadow:0 2px 8px rgba(37,99,235,.08)}
+.p0tag{background:#FEE2E2;color:#DC2626;font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;flex-shrink:0}
+.p1tag{background:#FEF3C7;color:#92400E;font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;flex-shrink:0}
+.alert-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:6px;background:white;border:1px solid #F3F4F6;margin-bottom:8px}
+.adot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.adot-r{background:#EF4444;animation:pulse-r 1.5s infinite}
+.adot-y{background:#F59E0B}.adot-b{background:#3B82F6}
+@keyframes pulse-r{0%{box-shadow:0 0 0 0 rgba(239,68,68,.4)}70%{box-shadow:0 0 0 6px rgba(239,68,68,0)}100%{box-shadow:0 0 0 0 rgba(239,68,68,0)}}
+.conf-bar{height:6px;background:#F3F4F6;border-radius:3px;overflow:hidden;margin-top:4px}
+.conf-fill{height:100%;border-radius:3px}
+.agent-desktop{background:#F8FAFC;border:1px solid #E5E7EB;border-radius:8px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08);display:grid;grid-template-columns:260px 1fr 280px;height:520px}
+.agent-col-left{border-right:1px solid #E5E7EB;display:flex;flex-direction:column;overflow:hidden}
+.agent-col-mid{display:flex;flex-direction:column;overflow:hidden}
+.agent-col-right{border-left:1px solid #E5E7EB;display:flex;flex-direction:column;overflow:hidden;background:white}
+.agent-hdr{background:#0B2D55;color:white;padding:8px 12px;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.copilot-hdr{background:#1E40AF;color:white;padding:10px 14px;font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.chat-bubble-agent{background:#EFF6FF;border:1px solid #DBEAFE;padding:8px 12px;border-radius:0 8px 8px 8px;font-size:12px;color:#1E40AF;margin-bottom:10px;max-width:90%}
+.chat-bubble-cust{background:#F9FAFB;border:1px solid #E5E7EB;padding:8px 12px;border-radius:8px 8px 8px 0;font-size:12px;color:#374151;margin-bottom:10px;max-width:90%;margin-left:auto}
+.rec-card{background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;padding:12px;margin:10px;flex-shrink:0}
+.rec-card.warn{background:#FFFBEB;border-color:#FCD34D}
+.trust-row{display:flex;align-items:center;justify-content:space-between;padding:4px 0;font-size:11.5px}
+.trust-label{color:#6B7280;font-weight:500}
+.trust-val{font-weight:600;color:#111827}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#D1D5DB;border-radius:3px}
+.filter-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#F9FAFB;border-bottom:1px solid #E5E7EB;flex-wrap:wrap}
+.row-detail{background:#FAFBFF;border-top:2px solid #2563EB;padding:18px 22px;display:none;animation:slideDown .18s ease}
+.row-detail.open{display:block}
+@keyframes slideDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.report-preview-doc{background:white;border:1px solid #E5E7EB;border-radius:8px;max-width:680px;margin:0 auto;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.08);font-family:Georgia,serif}
+.rpt-header{background:#0B2D55;padding:28px 36px;color:white}
+.rpt-body{padding:32px 36px}
+.rpt-section{margin-bottom:24px}
+.rpt-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6B7280;border-bottom:1px solid #E5E7EB;padding-bottom:6px;margin-bottom:12px;font-family:-apple-system,'Segoe UI',sans-serif}
+.rpt-metric-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #F3F4F6;font-size:13px;font-family:-apple-system,'Segoe UI',sans-serif}
+.sidebar-footer{margin-top:auto;border-top:1px solid #F3F4F6;padding:10px 16px}
+/* ===== v1.1 additions (validation feedback) ===== */
+.tipwrap{position:relative;display:inline-flex;align-items:center}
+.tipico{width:14px;height:14px;border-radius:50%;background:#E5E7EB;color:#6B7280;font-size:9.5px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:help;margin-left:5px}
+.tipwrap:hover .tip{opacity:1;visibility:visible;transform:translate(-50%,-6px)}
+.tip{position:absolute;bottom:calc(100% + 4px);left:50%;transform:translate(-50%,0);background:#0B2D55;color:white;padding:9px 12px;border-radius:6px;font-size:11.5px;font-weight:400;line-height:1.5;width:240px;text-align:left;z-index:50;opacity:0;visibility:hidden;transition:all .15s;box-shadow:0 4px 14px rgba(0,0,0,.18);white-space:normal}
+.tip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:#0B2D55}
+.tip-strong{color:#86EFAC;font-weight:700}
+.banner{display:flex;gap:10px;padding:10px 14px;border-radius:6px;font-size:12.5px;align-items:flex-start;margin-bottom:14px}
+.banner-info{background:#EFF6FF;border:1px solid #BFDBFE;color:#1D4ED8}
+.banner-warn{background:#FFFBEB;border:1px solid #FDE68A;color:#92400E}
+.banner-ok{background:#F0FDF4;border:1px solid #BBF7D0;color:#15803D}
+.drawer{position:fixed;top:48px;right:0;width:520px;height:calc(100vh - 48px);background:white;border-left:1px solid #E5E7EB;box-shadow:-8px 0 24px rgba(0,0,0,.08);z-index:200;transform:translateX(100%);transition:transform .25s ease;display:flex;flex-direction:column;overflow:hidden}
+.drawer.open{transform:translateX(0)}
+.drawer-hdr{padding:14px 18px;border-bottom:1px solid #E5E7EB;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.drawer-body{flex:1;overflow-y:auto;padding:18px}
+.drawer-foot{padding:12px 18px;border-top:1px solid #E5E7EB;display:flex;justify-content:space-between;gap:8px;background:#F9FAFB;flex-shrink:0}
+.drawer-bd{position:fixed;inset:48px 0 0 0;background:rgba(15,23,42,.32);z-index:199;display:none}
+.drawer-bd.open{display:block}
+.dsl-line{font-family:'SF Mono',Menlo,Consolas,monospace;font-size:12px;color:#1F2937;background:#F8FAFC;border:1px solid #E5E7EB;border-radius:4px;padding:8px 10px;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.dsl-tok-key{color:#7C3AED;font-weight:600}
+.dsl-tok-op{color:#DC2626}
+.dsl-tok-val{color:#0F766E}
+.tab-row{display:flex;border-bottom:1px solid #E5E7EB;background:#FAFBFF}
+.tab-btn{padding:10px 16px;font-size:12.5px;font-weight:600;color:#6B7280;cursor:pointer;border-bottom:2px solid transparent;transition:all .12s}
+.tab-btn:hover{color:#1F2937}
+.tab-btn.active{color:#1D4ED8;border-bottom-color:#2563EB}
+.dx-link{color:#2563EB;cursor:pointer;font-weight:600}
+.dx-link:hover{text-decoration:underline}
+.kpi-card-blue{background:linear-gradient(135deg,#0B2D55,#1E3A8A);color:white;border:none}
+.kpi-card-blue .kpi-label{color:rgba(255,255,255,.7)}
+.kpi-card-blue .kpi-value{color:white}
+.legend-pill{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:10px;background:#F3F4F6;font-size:10.5px;color:#4B5563;font-weight:600;cursor:help}
+.cite-link{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;color:#2563EB;background:#EFF6FF;border:1px solid #BFDBFE;padding:1px 7px;border-radius:10px;cursor:pointer;font-weight:600;text-decoration:none}
+.cite-link:hover{background:#DBEAFE}
+.sim-bar{display:flex;flex-direction:column;gap:5px;padding:10px;background:#F8FAFC;border-radius:5px;font-size:11.5px}
+.bar-row{display:flex;align-items:center;gap:8px}
+.bar-track{flex:1;height:8px;background:#E5E7EB;border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="top-header">
+  <div style="display:flex;align-items:center;gap:8px">
+    <div class="hico">
+      <svg width="17" height="17" viewBox="0 0 18 18" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="11" y="1" width="6" height="6" rx="1"/><rect x="1" y="11" width="6" height="6" rx="1"/><rect x="11" y="11" width="6" height="6" rx="1"/></svg>
+    </div>
+    <div style="width:1px;height:20px;background:rgba(255,255,255,.15)"></div>
+    <span style="color:rgba(255,255,255,.65);font-size:13px">Admin</span>
+  </div>
+  <div class="header-logo">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5z" fill="white"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5" stroke="white" stroke-width="1.5" stroke-linecap="round" fill="none" opacity=".7"/></svg>
+    <span>CXone Mpower</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px">
+    <div class="hico">
+      <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span class="hbadge">3</span>
+    </div>
+    <div class="hico">
+      <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg>
+    </div>
+    <div style="width:1px;height:20px;background:rgba(255,255,255,.15)"></div>
+    <div class="huser">
+      <div style="text-align:right">
+        <div style="color:white;font-size:12.5px;font-weight:600;line-height:1.2">Gerald Ashby</div>
+        <div style="color:rgba(255,255,255,.6);font-size:10.5px;line-height:1.2">Director, Product Management</div>
+      </div>
+      <div class="avatar">GA</div>
+    </div>
+  </div>
+</header>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div style="padding:8px 0">
+    <div style="padding:10px 16px 6px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#9CA3AF">AI Trust Center</div>
+    <div class="sec-title" style="border-top:none;margin-top:0">AI Governance</div>
+    <div class="nav-item active" onclick="navigate('dashboard')" id="nav-dashboard">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Governance Dashboard
+    </div>
+    <div class="nav-item" onclick="navigate('auditlog')" id="nav-auditlog">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Audit Log Explorer
+    </div>
+    <div class="nav-item" onclick="navigate('policy')" id="nav-policy">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Policy Engine
+      <span class="nbadge">3</span>
+    </div>
+    <div class="sec-title">Reports &amp; Queries</div>
+    <div class="nav-item" onclick="navigate('boardreport')" id="nav-boardreport">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Board Report Builder
+    </div>
+    <div class="nav-item" onclick="navigate('nlq')" id="nav-nlq">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Natural Language Query
+    </div>
+    <div class="sec-title">Agent Tools</div>
+    <div class="nav-item" onclick="navigate('agent')" id="nav-agent">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Agent Trust Panel
+    </div>
+    <div class="sec-title">Administration</div>
+    <div class="nav-item" onclick="navigate('dataflow')" id="nav-dataflow">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
+      Data Flow Visualizer
+    </div>
+    <div class="sec-title">Models &amp; Incidents</div>
+    <div class="nav-item" onclick="navigate('models')" id="nav-models">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+      Model Registry
+    </div>
+    <div class="nav-item" onclick="navigate('incident')" id="nav-incident">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Incident Timeline
+      <span class="nbadge">2</span>
+    </div>
+    <div class="nav-item disabled">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Access Controls
+    </div>
+  </div>
+  <div class="sidebar-footer">
+    <div style="font-size:11px;color:#6B7280;display:flex;align-items:center;gap:6px;margin-bottom:4px">
+      <span style="width:7px;height:7px;background:#16A34A;border-radius:50%;display:inline-block"></span>
+      Audit Coverage: <strong style="color:#16A34A">100%</strong>
+    </div>
+    <div style="font-size:11px;color:#9CA3AF">Platform v2.8.0 · Trust Center v1.0</div>
+  </div>
+</nav>
+
+<!-- MAIN CONTENT -->
+<div class="main-content" id="mainContent">
+
+<!-- ===== VIEW: DASHBOARD ===== -->
+<div class="view active" id="view-dashboard">
+  <div class="breadcrumb"><span class="blink">AI Trust Center</span><span>›</span><span>Governance Dashboard</span></div>
+  <div class="page-title-row">
+    <div class="page-title">
+      Governance Dashboard
+      <span class="sbadge s-active">
+        <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor"><circle cx="4" cy="4" r="4"/></svg>
+        Active
+      </span>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <select class="form-input form-select" style="width:160px;padding:7px 32px 7px 10px;font-size:12.5px">
+        <option>Last 7 Days</option><option>Last 30 Days</option><option>Last 90 Days</option><option>Custom Range</option>
+      </select>
+      <button class="btn btn-secondary btn-sm"><svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg> Export</button>
+      <button class="btn btn-primary btn-sm" onclick="navigate('boardreport')"><svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> Board Report</button>
+    </div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:20px">
+    <div style="background:white;border:1px solid #E5E7EB;border-radius:8px;padding:0;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden;min-width:0">
+      <div style="height:4px;background:linear-gradient(90deg,#2563EB,#60A5FA)"></div>
+      <div style="padding:16px 18px">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px">
+          <div style="font-size:11px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:.06em">AI Decisions Today</div>
+          <div style="width:32px;height:32px;background:#EFF6FF;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#2563EB" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          </div>
+        </div>
+        <div style="font-size:32px;font-weight:700;color:#111827;line-height:1;margin-bottom:8px">62,847</div>
+        <div style="display:flex;align-items:center;gap:4px;font-size:12px;color:#15803D">
+          <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><polyline points="18 15 12 9 6 15"/></svg>
+          +8.3% vs yesterday
+        </div>
+      </div>
+    </div>
+    <div style="background:white;border:1px solid #E5E7EB;border-radius:8px;padding:0;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden;min-width:0">
+      <div style="height:4px;background:linear-gradient(90deg,#16A34A,#4ADE80)"></div>
+      <div style="padding:16px 18px">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px">
+          <div style="font-size:11px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:.06em">Avg Confidence Score</div>
+          <div style="width:32px;height:32px;background:#F0FDF4;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#16A34A" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+        </div>
+        <div style="font-size:32px;font-weight:700;color:#16A34A;line-height:1;margin-bottom:8px">0.83</div>
+        <div style="display:flex;align-items:center;gap:4px;font-size:12px;color:#15803D">
+          <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><polyline points="18 15 12 9 6 15"/></svg>
+          +0.02 vs 30-day avg
+        </div>
+      </div>
+    </div>
+    <div style="background:white;border:1px solid #E5E7EB;border-radius:8px;padding:0;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden;min-width:0">
+      <div style="height:4px;background:linear-gradient(90deg,#DC2626,#F87171)"></div>
+      <div style="padding:16px 18px">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px">
+          <div style="font-size:11px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:.06em">Policy Violations (7d)</div>
+          <div style="width:32px;height:32px;background:#FEF2F2;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#DC2626" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+        </div>
+        <div style="font-size:32px;font-weight:700;color:#DC2626;line-height:1;margin-bottom:8px">3</div>
+        <div style="display:flex;align-items:center;gap:4px;font-size:12px;color:#DC2626">
+          <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><polyline points="6 9 12 15 18 9"/></svg>
+          +1 vs prior period
+        </div>
+      </div>
+    </div>
+    <div style="background:white;border:1px solid #E5E7EB;border-radius:8px;padding:0;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden;min-width:0">
+      <div style="height:4px;background:linear-gradient(90deg,#0D9488,#2DD4BF)"></div>
+      <div style="padding:16px 18px">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px">
+          <div style="font-size:11px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:.06em">Compliance Coverage</div>
+          <div style="width:32px;height:32px;background:#F0FDFA;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#0D9488" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+        </div>
+        <div style="font-size:32px;font-weight:700;color:#0D9488;line-height:1;margin-bottom:8px">100%</div>
+        <div style="font-size:12px;color:#6B7280">Autopilot · Copilot · Mpower</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Row -->
+  <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:20px;min-width:0">
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div>
+          <div class="card-title">AI Decision Volume</div>
+          <div style="font-size:11.5px;color:#9CA3AF">Last 7 days — all modules</div>
+        </div>
+        <div style="display:flex;gap:12px;font-size:11.5px">
+          <span style="display:flex;align-items:center;gap:4px;color:#6D28D9"><span style="width:10px;height:3px;background:#7C3AED;border-radius:2px;display:inline-block"></span>Autopilot</span>
+          <span style="display:flex;align-items:center;gap:4px;color:#1D4ED8"><span style="width:10px;height:3px;background:#2563EB;border-radius:2px;display:inline-block"></span>Copilot</span>
+          <span style="display:flex;align-items:center;gap:4px;color:#0F766E"><span style="width:10px;height:3px;background:#0D9488;border-radius:2px;display:inline-block"></span>Mpower</span>
+        </div>
+      </div>
+      <div style="position:relative;height:180px;width:100%"><canvas id="chartVolume"></canvas></div>
+    </div>
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div><div class="card-title">Agent Action Split</div><div style="font-size:11.5px;color:#9CA3AF">Recommendation outcomes</div></div>
+      </div>
+      <div style="position:relative;height:180px;width:100%"><canvas id="chartActions"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Bottom Row: Alerts + Module Health -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div class="card-title">Active Alerts</div>
+        <span class="badge br">2 Critical</span>
+      </div>
+      <div class="alert-item">
+        <div class="adot adot-r"></div>
+        <div style="flex:1">
+          <div style="font-size:12.5px;font-weight:600;color:#111827;margin-bottom:2px">Override Rate Spike — Copilot NLP v3.2.1</div>
+          <div style="font-size:11.5px;color:#6B7280">Override rate hit 31.4% (threshold: 30%) over last 2h · Skill: Billing Disputes</div>
+          <div style="font-size:11px;color:#9CA3AF;margin-top:4px">Today 10:41 AM · Policy: POL-002</div>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="navigate('auditlog')">Investigate</button>
+      </div>
+      <div class="alert-item">
+        <div class="adot adot-r"></div>
+        <div style="flex:1">
+          <div style="font-size:12.5px;font-weight:600;color:#111827;margin-bottom:2px">Policy Violation — TCPA Consent Gap</div>
+          <div style="font-size:11.5px;color:#6B7280">3 outbound AI-assisted contacts missing consent reference · Session SES-98247</div>
+          <div style="font-size:11px;color:#9CA3AF;margin-top:4px">Today 09:18 AM · Policy: POL-008</div>
+        </div>
+        <button class="btn btn-secondary btn-sm">Review</button>
+      </div>
+      <div class="alert-item">
+        <div class="adot adot-y"></div>
+        <div style="flex:1">
+          <div style="font-size:12.5px;font-weight:600;color:#111827;margin-bottom:2px">Confidence Drift — Autopilot Intent v3.0</div>
+          <div style="font-size:11.5px;color:#6B7280">Score distribution shifted 12% vs 30-day baseline · Below 15% threshold</div>
+          <div style="font-size:11px;color:#9CA3AF;margin-top:4px">Yesterday 11:52 PM · Policy: POL-005</div>
+        </div>
+        <button class="btn btn-secondary btn-sm">Dismiss</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="margin-bottom:14px"><div class="card-title">Module Health</div><div style="font-size:11.5px;color:#9CA3AF">Audit coverage &amp; model status</div></div>
+      <table class="data-table">
+        <thead><tr><th>Module</th><th>Model Version</th><th>Coverage</th><th>Avg Conf.</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge bp">Autopilot</span></td><td style="font-family:monospace;font-size:11.5px">autopilot-v2.8.0</td><td><span style="color:#16A34A;font-weight:700">100%</span></td><td>0.87</td><td><span class="badge bg">Healthy</span></td></tr>
+          <tr><td><span class="badge bb">Copilot NLP</span></td><td style="font-family:monospace;font-size:11.5px">copilot-nlp-v3.2.1</td><td><span style="color:#16A34A;font-weight:700">100%</span></td><td>0.81</td><td><span class="badge by">Watch</span></td></tr>
+          <tr><td><span class="badge bb">Copilot Sentiment</span></td><td style="font-family:monospace;font-size:11.5px">copilot-sent-v2.1</td><td><span style="color:#16A34A;font-weight:700">100%</span></td><td>0.79</td><td><span class="badge bg">Healthy</span></td></tr>
+          <tr><td><span class="badge bt">Mpower Agent</span></td><td style="font-family:monospace;font-size:11.5px">mpower-orch-v1.4.2</td><td><span style="color:#92400E;font-weight:700">97.3%</span></td><td>0.85</td><td><span class="badge bg">Healthy</span></td></tr>
+          <tr><td><span class="badge bgr">Autopilot Intent</span></td><td style="font-family:monospace;font-size:11.5px">autopilot-int-v3.0</td><td><span style="color:#16A34A;font-weight:700">100%</span></td><td>0.76</td><td><span class="badge by">Drift</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ===== VIEW: AUDIT LOG ===== -->
+<div class="view" id="view-auditlog">
+  <div class="breadcrumb"><span class="blink">AI Trust Center</span><span>›</span><span>Audit Log Explorer</span></div>
+  <div class="page-title-row">
+    <div class="page-title">Audit Log Explorer</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-secondary btn-sm"><svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg> Export CSV</button>
+      <button class="btn btn-secondary btn-sm">Export JSON</button>
+      <button class="btn btn-primary btn-sm">SIEM Push</button>
+    </div>
+  </div>
+
+  <div class="card" style="padding:0;overflow:hidden">
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+      <div class="srch" style="width:260px">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="form-input" style="font-size:12.5px;padding:6px 10px 6px 32px" placeholder="Search session, agent, model..." id="auditSearch" oninput="filterAudit()">
+      </div>
+      <select class="form-input form-select" style="width:130px;padding:6px 28px 6px 10px;font-size:12.5px" id="filterModule" onchange="filterAudit()">
+        <option value="">All Modules</option>
+        <option>Autopilot</option><option>Copilot</option><option>Mpower Agent</option>
+      </select>
+      <select class="form-input form-select" style="width:140px;padding:6px 28px 6px 10px;font-size:12.5px" id="filterAction" onchange="filterAudit()">
+        <option value="">All Actions</option>
+        <option>accepted</option><option>rejected</option><option>modified</option><option>auto-applied</option><option>blocked</option>
+      </select>
+      <select class="form-input form-select" style="width:140px;padding:6px 28px 6px 10px;font-size:12.5px" id="filterReg" onchange="filterAudit()">
+        <option value="">All Regulations</option>
+        <option>EU AI Act</option><option>GDPR</option><option>TCPA</option><option>CCPA</option>
+      </select>
+      <div style="margin-left:auto;font-size:12px;color:#6B7280" id="auditCount">Showing 20 of 62,847 events</div>
+    </div>
+
+    <!-- Table -->
+    <div style="overflow-x:auto">
+      <table class="data-table" id="auditTable">
+        <thead><tr>
+          <th>Event ID</th><th>Timestamp</th><th>Module</th><th>Model Version</th>
+          <th>Session / Agent</th><th>Confidence</th><th>Action</th><th>Regulations</th><th></th>
+        </tr></thead>
+        <tbody id="auditTbody"></tbody>
+      </table>
+    </div>
+    <div style="padding:12px 14px;border-top:1px solid #E5E7EB;background:#F9FAFB;display:flex;align-items:center;justify-content:space-between;font-size:12px;color:#6B7280">
+      <span id="auditPageInfo">Page 1 of 3,143</span>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-secondary btn-sm">&#8592; Prev</button>
+        <button class="btn btn-secondary btn-sm">Next &#8594;</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== VIEW: BOARD REPORT ===== -->
+<div class="view" id="view-boardreport">
+  <div class="breadcrumb"><span class="blink">AI Trust Center</span><span>›</span><span>Board Report Builder</span></div>
+  <div class="page-title-row">
+    <div class="page-title">Board Report Builder</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-secondary btn-sm">Cancel</button>
+      <button class="btn btn-primary btn-sm" id="wizNextBtn" onclick="wizNext()">Next ›</button>
+    </div>
+  </div>
+
+  <div class="card" style="padding:0;overflow:hidden">
+    <!-- Wizard Steps -->
+    <div class="wiz-bar" id="wizBar">
+      <div class="wiz-step sa" id="ws1">
+        <div style="display:flex;align-items:center;width:100%">
+          <div class="wiz-dot">1</div>
+          <div class="wiz-line" id="wl1"></div>
+        </div>
+        <div class="wiz-lbl">Scope</div>
+      </div>
+      <div class="wiz-step sp" id="ws2">
+        <div style="display:flex;align-items:center;width:100%">
+          <div class="wiz-dot">2</div>
+          <div class="wiz-line" id="wl2"></div>
+        </div>
+        <div class="wiz-lbl">Narrative</div>
+      </div>
+      <div class="wiz-step sp" id="ws3">
+        <div style="display:flex;align-items:center;width:100%">
+          <div class="wiz-dot">3</div>
+          <div class="wiz-line" id="wl3"></div>
+        </div>
+        <div class="wiz-lbl">Preview</div>
+      </div>
+      <div class="wiz-step sp" id="ws4">
+        <div style="display:flex;align-items:center;width:100%">
+          <div class="wiz-dot">4</div>
+          <div style="flex:1"></div>
+        </div>
+        <div class="wiz-lbl">Generate</div>
+      </div>
+    </div>
+
+    <!-- Step 1: Scope -->
+    <div class="wiz-content active" id="wc1">
+      <div style="max-width:680px">
+        <h3 style="font-size:15px;font-weight:700;color:#111827;margin-bottom:4px">Configure Report Scope</h3>
+        <p style="font-size:13px;color:#6B7280;margin-bottom:24px">Select the time period, modules, and regulatory frameworks to include in your board report.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+          <div>
+            <div class="form-group">
+              <label class="form-label">Reporting Period</label>
+              <select class="form-input form-select"><option>Q1 FY2026 (Jan – Mar)</option><option>Q2 FY2026 (Apr – Jun)</option><option>Last 30 Days</option><option>Last 90 Days</option><option>Custom Range</option></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Business Unit</label>
+              <select class="form-input form-select"><option>All Business Units</option><option>Financial Services – North</option><option>Healthcare Division</option><option>Insurance Group</option></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Report Language</label>
+              <select class="form-input form-select"><option>English (US)</option><option>English (UK)</option><option>German</option><option>French</option></select>
+            </div>
+          </div>
+          <div>
+            <div class="form-group">
+              <label class="form-label">AI Modules to Include</label>
+              <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" checked style="accent-color:#2563EB"> <span class="badge bp">Autopilot</span> Deflection &amp; Intent</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" checked style="accent-color:#2563EB"> <span class="badge bb">Copilot</span> NLP &amp; Sentiment</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" checked style="accent-color:#2563EB"> <span class="badge bt">Mpower Agent</span> Orchestration</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" style="accent-color:#2563EB"> <span class="badge bgr">WFM / QA</span> AI Evaluations</label>
+              </div>
+            </div>
+            <div class="form-group" style="margin-top:16px">
+              <label class="form-label">Regulatory Frameworks</label>
+              <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" checked style="accent-color:#2563EB"> EU AI Act (Article 12 &amp; 14)</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" checked style="accent-color:#2563EB"> GDPR / CCPA — Data Privacy</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" checked style="accent-color:#2563EB"> TCPA / FCC 2026</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" style="accent-color:#2563EB"> SOC 2 Type II</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" style="accent-color:#2563EB"> Colorado AI Act</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Narrative -->
+    <div class="wiz-content" id="wc2">
+      <div style="max-width:680px">
+        <h3 style="font-size:15px;font-weight:700;color:#111827;margin-bottom:4px">Executive Narrative</h3>
+        <p style="font-size:13px;color:#6B7280;margin-bottom:20px">AI-generated summary based on your Q1 FY2026 audit data. Review and edit before generating the report.</p>
+        <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:6px;padding:10px 14px;margin-bottom:16px;display:flex;gap:10px;align-items:flex-start">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#2563EB" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span style="font-size:12.5px;color:#1D4ED8">Generated from 62,847 AI decision events across Q1. Cryptographic integrity verified. Edit freely — the audit certificate is appended at generation, not from this text.</span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Executive Summary</label>
+          <textarea class="form-input" rows="7" style="resize:vertical;line-height:1.6">During Q1 FY2026, NICE CXone Mpower's AI systems processed 5.2 million AI-assisted customer interactions across our contact center operations. The AI Trust Center maintained 100% audit coverage across all three production AI modules — Autopilot, Copilot, and Mpower Agent Orchestration — with zero audit log gaps.
+
+Key governance metrics for the quarter: average model confidence score of 0.83 (above the 0.75 enterprise baseline), agent acceptance rate of 78.3% on Copilot recommendations, and 3 policy violations (all resolved within SLA). No critical compliance incidents were recorded against EU AI Act Article 12 or TCPA obligations.
+
+The Trust Center's cryptographic audit chain passed third-party integrity verification on March 31, 2026. All customer data was processed within designated regional boundaries per our Data Processing Agreement commitments.</textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Board Highlights (bullet points)</label>
+          <textarea class="form-input" rows="5" style="resize:vertical;line-height:1.8">• 100% AI audit coverage achieved — every Autopilot, Copilot, and Mpower Agent decision logged with model version, confidence score, and agent action
+• EU AI Act Article 12 compliance confirmed by external auditor (Ernst & Young, March 2026)
+• Override rate 21.7% — within policy threshold; Billing Disputes skill flagged for model retraining
+• Zero PII exposure events — all customer data tokenized at source before audit write
+• Board-ready attestation signed by CTO and CCO — available on demand</textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: Preview -->
+    <div class="wiz-content" id="wc3">
+      <p style="font-size:13px;color:#6B7280;margin-bottom:20px;max-width:680px;margin-left:auto;margin-right:auto">Preview your board report. Click Generate to produce the final PDF with cryptographic audit certificate appended.</p>
+      <div class="report-preview-doc">
+        <div class="rpt-header">
+          <div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.6);margin-bottom:6px">NICE CXone Mpower · AI Trust Center</div>
+          <div style="font-size:22px;font-weight:700;margin-bottom:4px">AI Governance Report</div>
+          <div style="font-size:14px;color:rgba(255,255,255,.75)">Q1 FY2026 · January 1 – March 31, 2026</div>
+          <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,.2);display:flex;gap:24px;font-size:12px;color:rgba(255,255,255,.7)">
+            <span>Prepared by: Gerald Ashby, Director PM</span>
+            <span>Generated: May 7, 2026 · 10:41 AM</span>
+            <span style="color:#86EFAC">● Cryptographically Sealed</span>
+          </div>
+        </div>
+        <div class="rpt-body">
+          <div class="rpt-section">
+            <div class="rpt-section-title">Executive Summary</div>
+            <p style="font-size:13px;color:#374151;line-height:1.7">During Q1 FY2026, NICE CXone Mpower's AI systems processed <strong>5.2 million AI-assisted interactions</strong> with 100% audit coverage across all production modules. Average model confidence: <strong>0.83</strong>. Agent acceptance rate: <strong>78.3%</strong>. Policy violations: <strong>3</strong> (all resolved). EU AI Act Article 12 compliance confirmed by Ernst &amp; Young.</p>
+          </div>
+          <div class="rpt-section">
+            <div class="rpt-section-title">Key Governance Metrics</div>
+            <div class="rpt-metric-row"><span>Total AI Decisions</span><strong>5,214,329</strong></div>
+            <div class="rpt-metric-row"><span>Autopilot Deflections</span><strong>1,284,100</strong></div>
+            <div class="rpt-metric-row"><span>Copilot Recommendations</span><strong>3,641,200</strong></div>
+            <div class="rpt-metric-row"><span>Mpower Agent Actions</span><strong>289,029</strong></div>
+            <div class="rpt-metric-row"><span>Agent Acceptance Rate</span><strong style="color:#16A34A">78.3%</strong></div>
+            <div class="rpt-metric-row"><span>Average Confidence Score</span><strong style="color:#16A34A">0.83</strong></div>
+            <div class="rpt-metric-row"><span>Policy Violations</span><strong style="color:#DC2626">3</strong></div>
+            <div class="rpt-metric-row" style="border-bottom:none"><span>Audit Coverage</span><strong style="color:#16A34A">100%</strong></div>
+          </div>
+          <div class="rpt-section">
+            <div class="rpt-section-title">Regulatory Compliance Status</div>
+            <div class="rpt-metric-row"><span>EU AI Act — Article 12 (Record-keeping)</span><strong style="color:#16A34A">✓ Compliant</strong></div>
+            <div class="rpt-metric-row"><span>EU AI Act — Article 14 (Human Oversight)</span><strong style="color:#16A34A">✓ Compliant</strong></div>
+            <div class="rpt-metric-row"><span>GDPR — Data Residency (EU Region)</span><strong style="color:#16A34A">✓ Compliant</strong></div>
+            <div class="rpt-metric-row" style="border-bottom:none"><span>TCPA / FCC — Consent Audit Trail</span><strong style="color:#92400E">⚠ 3 Exceptions</strong></div>
+          </div>
+          <div style="margin-top:24px;padding:14px 16px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;font-size:12px;color:#6B7280">
+            <strong style="color:#374151">Attestation:</strong> This report is generated from tamper-evident audit logs sealed with SHA-256 per-record hashing. Merkle tree root hash: <code style="background:#F3F4F6;padding:2px 5px;border-radius:3px;font-size:11px">a4f2c8d1...9e3b</code> · Verified by NICE Trust Center v1.0
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Wizard footer with Back / Next -->
+    <div class="wiz-foot" id="wizFoot">
+      <button class="btn btn-secondary btn-sm" id="wizBackBtn" onclick="wizBack()" style="visibility:hidden">‹ Back</button>
+      <span class="step-ind" id="wizStepInd">Step 1 of 4 · Scope</span>
+      <button class="btn btn-primary btn-sm" id="wizNextBtnBottom" onclick="wizNext()">Next ›</button>
+    </div>
+
+    <!-- Step 4: Generate -->
+    <div class="wiz-content" id="wc4">
+      <div style="max-width:520px;margin:0 auto;text-align:center;padding:40px 20px" id="genPending">
+        <div style="width:64px;height:64px;border-radius:50%;background:#EFF6FF;display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
+          <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#2563EB" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <h3 style="font-size:17px;font-weight:700;color:#111827;margin-bottom:8px">Ready to Generate</h3>
+        <p style="font-size:13px;color:#6B7280;margin-bottom:24px">Your Q1 FY2026 AI Governance Report will be generated with a cryptographic audit certificate. Generation takes under 60 seconds.</p>
+        <button class="btn btn-primary btn-lg" onclick="generateReport()">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Generate Board Report
+        </button>
+      </div>
+      <div style="display:none;max-width:520px;margin:0 auto;text-align:center;padding:40px 20px" id="genSuccess">
+        <div style="width:64px;height:64px;border-radius:50%;background:#DCFCE7;display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
+          <svg width="30" height="30" fill="none" viewBox="0 0 24 24" stroke="#16A34A" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <h3 style="font-size:17px;font-weight:700;color:#111827;margin-bottom:8px">Report Generated</h3>
+        <p style="font-size:13px;color:#6B7280;margin-bottom:6px">Q1 FY2026 AI Governance Report · 14 pages · Generated in 38 seconds</p>
+        <p style="font-size:12px;color:#9CA3AF;margin-bottom:24px">SHA-256 seal: <code style="background:#F3F4F6;padding:2px 5px;border-radius:3px">a4f2c8d1...9e3b</code> · Merkle root verified</p>
+        <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-primary">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            Download PDF
+          </button>
+          <button class="btn btn-secondary">Download PPTX</button>
+          <button class="btn btn-secondary">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            Email to Board
+          </button>
+        </div>
+        <div style="margin-top:20px;padding:12px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:6px;font-size:12px;color:#6B7280;text-align:left">
+          <strong style="color:#374151">Schedule future reports:</strong> Auto-generate quarterly reports and email to board distribution list.
+          <button class="btn btn-secondary btn-sm" style="margin-top:8px;width:100%;justify-content:center">Set Up Scheduled Delivery</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== VIEW: NLQ ===== -->
+<div class="view" id="view-nlq">
+  <div class="breadcrumb"><span class="blink">AI Trust Center</span><span>›</span><span>Natural Language Query</span></div>
+  <div class="page-title-row" style="margin-bottom:0">
+    <div class="page-title">Natural Language Query</div>
+    <span class="sbadge s-warn" style="font-size:11px">P1 · H2 Preview</span>
+  </div>
+  <div style="max-width:760px;margin:0 auto;padding-top:24px">
+    <div class="nlq-box">
+      <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#9CA3AF" stroke-width="2" style="flex-shrink:0;margin-top:3px"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <textarea class="nlq-ta" id="nlqInput" rows="1" placeholder="Ask anything about your AI audit data — e.g. 'Show Copilot rejections in the last 7 days'" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();submitNLQ()}"></textarea>
+      <button class="btn btn-primary btn-sm" onclick="submitNLQ()">Search</button>
+    </div>
+    <div style="margin-top:14px">
+      <div style="font-size:11.5px;color:#9CA3AF;margin-bottom:8px">Try these queries:</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <span class="nlq-chip" onclick="setNLQ('Show all Copilot rejections this week')">Show Copilot rejections this week</span>
+        <span class="nlq-chip" onclick="setNLQ('What is our EU AI Act compliance status?')">EU AI Act compliance status</span>
+        <span class="nlq-chip" onclick="setNLQ('Which agent had the highest override rate?')">Highest override rate agent</span>
+        <span class="nlq-chip" onclick="setNLQ('Show policy violations in the last 30 days')">Policy violations — 30 days</span>
+        <span class="nlq-chip" onclick="setNLQ('What is the confidence score trend for Autopilot?')">Autopilot confidence trend</span>
+        <span class="nlq-chip" onclick="setNLQ('Show all Mpower Agent blocked events')">Mpower Agent blocked events</span>
+      </div>
+    </div>
+    <div id="nlqResult"></div>
+    <div style="margin-top:24px;padding:14px;background:white;border:1px solid #E5E7EB;border-radius:8px">
+      <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:10px">Query History</div>
+      <div style="display:flex;flex-direction:column;gap:6px" id="nlqHistory">
+        <div style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:5px;background:#F9FAFB;cursor:pointer" onclick="setNLQ('Show interactions where AI recommended a refund and agent overrode it')">
+          <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="#9CA3AF" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span style="font-size:12.5px;color:#374151;flex:1">Show interactions where AI recommended a refund and agent overrode it</span>
+          <span style="font-size:11px;color:#9CA3AF">Yesterday</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:5px;background:#F9FAFB;cursor:pointer" onclick="setNLQ('Which models had confidence below 0.70 last month?')">
+          <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="#9CA3AF" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span style="font-size:12.5px;color:#374151;flex:1">Which models had confidence below 0.70 last month?</span>
+          <span style="font-size:11px;color:#9CA3AF">May 5</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:5px;background:#F9FAFB;cursor:pointer" onclick="setNLQ('Generate TCPA consent audit extract for April 2026')">
+          <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="#9CA3AF" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span style="font-size:12.5px;color:#374151;flex:1">Generate TCPA consent audit extract for April 2026</span>
+          <span style="font-size:11px;color:#9CA3AF">May 4</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== VIEW: POLICY ENGINE ===== -->
+<div class="view" id="view-policy">
+  <div class="breadcrumb"><span class="blink">AI Trust Center</span><span>›</span><span>Policy Engine</span></div>
+  <div class="page-title-row">
+    <div class="page-title">Policy Engine <span class="sbadge s-active" style="font-size:11px">8 Policies</span></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-secondary btn-sm">Import Policy</button>
+      <button class="btn btn-primary btn-sm">+ New Policy</button>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+    <div class="kpi-card" style="padding:14px 18px">
+      <div class="kpi-label">Active Policies</div><div class="kpi-value" style="font-size:24px;color:#16A34A">7</div>
+    </div>
+    <div class="kpi-card" style="padding:14px 18px">
+      <div class="kpi-label">Violations (30d)</div><div class="kpi-value" style="font-size:24px;color:#DC2626">23</div>
+    </div>
+  </div>
+
+  <div id="policyList"></div>
+</div>
+
+<!-- ===== VIEW: AGENT PANEL ===== -->
+<div class="view" id="view-agent">
+  <div class="breadcrumb"><span class="blink">AI Trust Center</span><span>›</span><span>Agent Trust Panel</span></div>
+  <div class="page-title-row">
+    <div class="page-title">Agent Trust Panel <span class="sbadge s-warn" style="font-size:11px">P1 · H2</span></div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <span style="font-size:12.5px;color:#6B7280">Viewing as:</span>
+      <select class="form-input form-select" style="width:160px;padding:6px 28px 6px 10px;font-size:12.5px"><option>Ana Martinez (Agent)</option><option>R. Johnson (Agent)</option><option>B. Chen (Senior Agent)</option></select>
+    </div>
+  </div>
+
+  <div style="margin-bottom:12px;padding:10px 14px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:6px;font-size:12.5px;color:#1D4ED8;display:flex;gap:10px;align-items:center">
+    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    This is the agent-facing view of the AI Trust Center. Confidence scores, source attribution, and policy version are surfaced at the point of recommendation.
+  </div>
+
+  <div class="agent-desktop">
+    <!-- Left: Interaction List -->
+    <div class="agent-col-left">
+      <div class="agent-hdr">
+        <span>Active Interactions</span>
+        <span style="background:rgba(255,255,255,.15);padding:2px 8px;border-radius:10px;font-size:11px">4 Active</span>
+      </div>
+      <div style="overflow-y:auto;flex:1">
+        <div style="padding:10px 12px;background:#EFF6FF;border-left:3px solid #2563EB;cursor:pointer">
+          <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+            <span style="font-size:12.5px;font-weight:600;color:#111827">Edward Ferrars</span>
+            <span style="font-size:10.5px;color:#9CA3AF">2m ago</span>
+          </div>
+          <div style="font-size:11.5px;color:#6B7280;margin-bottom:4px">Billing inquiry — refund request</div>
+          <div style="display:flex;gap:5px">
+            <span class="badge bb" style="font-size:10px">Copilot Active</span>
+          </div>
+        </div>
+        <div style="padding:10px 12px;border-bottom:1px solid #F3F4F6;cursor:pointer">
+          <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+            <span style="font-size:12.5px;font-weight:600;color:#111827">Sarah Chen</span>
+            <span style="font-size:10.5px;color:#9CA3AF">8m ago</span>
+          </div>
+          <div style="font-size:11.5px;color:#6B7280">Account cancellation request</div>
+        </div>
+        <div style="padding:10px 12px;border-bottom:1px solid #F3F4F6;cursor:pointer">
+          <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+            <span style="font-size:12.5px;font-weight:600;color:#111827">Marcus Webb</span>
+            <span style="font-size:10.5px;color:#9CA3AF">15m ago</span>
+          </div>
+          <div style="font-size:11.5px;color:#6B7280">Technical support — outage</div>
+        </div>
+        <div style="padding:10px 12px;cursor:pointer">
+          <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+            <span style="font-size:12.5px;font-weight:600;color:#111827">Lucy Steele</span>
+            <span style="font-size:10.5px;color:#9CA3AF">22m ago</span>
+          </div>
+          <div style="font-size:11.5px;color:#6B7280">Policy question — coverage</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mid: Chat -->
+    <div class="agent-col-mid">
+      <div class="agent-hdr">
+        <span>Edward Ferrars · SES-98254</span>
+        <span style="font-size:11px;color:rgba(255,255,255,.6)">Voice + Chat · 4m 22s</span>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:16px;background:#F8FAFC">
+        <div style="margin-bottom:12px">
+          <div style="font-size:10.5px;color:#9CA3AF;margin-bottom:4px">Edward Ferrars · 10:38 AM</div>
+          <div class="chat-bubble-cust">Hi, I was charged twice for my subscription this month. I need a refund for one of the charges.</div>
+        </div>
+        <div style="margin-bottom:12px">
+          <div style="font-size:10.5px;color:#9CA3AF;margin-bottom:4px">Ana Martinez · 10:39 AM</div>
+          <div class="chat-bubble-agent" style="margin-left:0">Hi Edward! I can see the duplicate charge on your account. Let me look into this for you.</div>
+        </div>
+        <div style="margin-bottom:12px">
+          <div style="font-size:10.5px;color:#9CA3AF;margin-bottom:4px">Edward Ferrars · 10:41 AM</div>
+          <div class="chat-bubble-cust">Yes it was $49.99 — I was charged on both the 1st and 3rd. The one on the 3rd shouldn't be there.</div>
+        </div>
+      </div>
+      <div style="border-top:1px solid #E5E7EB;padding:10px 12px;background:white">
+        <textarea class="form-input" rows="2" placeholder="Type a message..." style="resize:none;font-size:13px;margin-bottom:8px"></textarea>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-secondary btn-sm">Attach</button>
+            <button class="btn btn-secondary btn-sm">Template</button>
+          </div>
+          <button class="btn btn-primary btn-sm">Send Message</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Copilot Trust Panel -->
+    <div class="agent-col-right">
+      <div class="copilot-hdr">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Copilot Recommendation
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:12px">
+        <div class="rec-card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <span style="font-size:12px;font-weight:700;color:#15803D">Recommended Action</span>
+            <span class="badge bg" style="font-size:11px">87% Conf.</span>
+          </div>
+          <p style="font-size:12.5px;color:#1F2937;line-height:1.5;margin-bottom:10px">Offer a <strong>full refund of $49.99</strong> for the duplicate charge on Nov 3. Apply promo code <strong>LOYAL10</strong> to next billing cycle as goodwill gesture.</p>
+          <div style="margin-bottom:10px">
+            <div class="conf-bar"><div class="conf-fill" style="width:87%;background:#16A34A"></div></div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="agent-action-btn" style="background:#16A34A;color:white;border-color:#16A34A;flex:1" id="acceptBtn" onclick="agentAction('accepted')">✓ Accept</button>
+            <button class="agent-action-btn" style="background:white;color:#374151;border:1px solid #D1D5DB;flex:1" onclick="agentAction('modified')">✎ Modify</button>
+            <button class="agent-action-btn" style="background:white;color:#DC2626;border:1px solid #FCA5A5" onclick="agentAction('rejected')">✕</button>
+          </div>
+        </div>
+
+        <!-- Trust Signals -->
+        <div style="padding:10px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;margin-top:10px">
+          <div style="font-size:11px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Trust Signals</div>
+          <div class="trust-row">
+            <span class="trust-label">Model</span>
+            <span class="trust-val" style="font-family:monospace;font-size:11px">copilot-nlp-v3.2.1</span>
+          </div>
+          <div class="trust-row">
+            <span class="trust-label">Confidence</span>
+            <span class="trust-val" style="color:#16A34A">87% · High</span>
+          </div>
+          <div class="trust-row">
+            <span class="trust-label">Policy Version</span>
+            <span class="trust-val" style="font-family:monospace;font-size:11px">refund-v4.1</span>
+          </div>
+          <div class="trust-row">
+            <span class="trust-label">Policy Age</span>
+            <span class="trust-val" style="color:#15803D">12 days ✓</span>
+          </div>
+          <div class="trust-row">
+            <span class="trust-label">Source</span>
+            <span class="trust-val" style="font-size:11px">KB-4821 · Billing SOP v2</span>
+          </div>
+          <div class="trust-row">
+            <span class="trust-label">Audit Event</span>
+            <span class="trust-val" style="font-family:monospace;font-size:10.5px">AE-20260507-62847</span>
+          </div>
+        </div>
+
+        <!-- Agent Feedback -->
+        <div style="margin-top:10px;padding:10px;background:white;border:1px solid #E5E7EB;border-radius:8px">
+          <div style="font-size:11px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Your Feedback</div>
+          <div style="font-size:12px;color:#374151;margin-bottom:8px">Was this recommendation helpful?</div>
+          <div style="display:flex;gap:8px;margin-bottom:8px">
+            <button class="agent-action-btn" style="flex:1;background:#F0FDF4;color:#15803D;border:1px solid #BBF7D0;font-size:12px" onclick="thumbsUp()">👍 Yes</button>
+            <button class="agent-action-btn" style="flex:1;background:#FFF7ED;color:#92400E;border:1px solid #FED7AA;font-size:12px" onclick="thumbsDown()">👎 No</button>
+          </div>
+          <textarea class="form-input" rows="2" placeholder="Optional: add context..." style="font-size:11.5px;resize:none"></textarea>
+        </div>
+
+        <!-- Action Status -->
+        <div id="agentActionStatus" style="display:none;margin-top:10px;padding:10px;border-radius:8px;font-size:12.5px;text-align:center;font-weight:600"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== VIEW: MODEL REGISTRY ===== -->
+<div class="view" id="view-models">
+  <div class="breadcrumb"><span class="blink">AI Trust Center</span><span>›</span><span>Model Registry</span></div>
+  <div class="page-title-row">
+    <div class="page-title">Model Registry <span class="sbadge s-active" style="font-size:11px">5 Production · 2 Staging</span></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-secondary btn-sm">Compare Versions</button>
+      <button class="btn btn-secondary btn-sm">Promote Model</button>
+      <button class="btn btn-primary btn-sm">+ Register Model</button>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px">
+    <div class="kpi-card" style="padding:14px 18px"><div class="kpi-label">Total Models</div><div class="kpi-value" style="font-size:24px">7</div><div style="font-size:11px;color:#6B7280">5 production · 2 staging</div></div>
+    <div class="kpi-card" style="padding:14px 18px"><div class="kpi-label">Avg Confidence</div><div class="kpi-value" style="font-size:24px;color:#16A34A">0.83</div><div style="font-size:11px;color:#6B7280">across all production models</div></div>
+    <div class="kpi-card" style="padding:14px 18px"><div class="kpi-label">Models on Watch</div><div class="kpi-value" style="font-size:24px;color:#92400E">2</div><div style="font-size:11px;color:#6B7280">drift &amp; override flags</div></div>
+    <div class="kpi-card" style="padding:14px 18px"><div class="kpi-label">Pending Approvals</div><div class="kpi-value" style="font-size:24px;color:#1D4ED8">1</div><div style="font-size:11px;color:#6B7280">awaiting CCO sign-off</div></div>
+  </div>
+
+  <div class="card" style="padding:0;overflow:hidden">
+    <div class="filter-bar">
+      <div class="srch" style="width:240px">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="form-input" style="font-size:12.5px;padding:6px 10px 6px 32px" placeholder="Search models, versions, owners...">
+      </div>
+      <select class="form-input form-select" style="width:130px;padding:6px 28px 6px 10px;font-size:12.5px"><option>All Modules</option><option>Autopilot</option><option>Copilot</option><option>Mpower</option></select>
+      <select class="form-input form-select" style="width:130px;padding:6px 28px 6px 10px;font-size:12.5px"><option>All Stages</option><option>Production</option><option>Staging</option><option>Retired</option></select>
+      <select class="form-input form-select" style="width:130px;padding:6px 28px 6px 10px;font-size:12.5px"><option>All Risk Tiers</option><option>High Risk</option><option>Limited Risk</option><option>Minimal Risk</option></select>
+      <div style="margin-left:auto;font-size:12px;color:#6B7280">7 models</div>
+    </div>
+    <table class="data-table">
+      <thead><tr><th>Model</th><th>Version</th><th>Stage</th><th>Risk Tier</th><th>Owner</th><th>Avg Confidence</th><th>Override Rate</th><th>Last Trained</th><th>Status</th></tr></thead>
+      <tbody id="modelsTbody"></tbody>
+    </table>
+  </div>
+
+  <!-- Model Detail Card -->
+  <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-top:18px">
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+            <span class="badge bb">Copilot NLP</span>
+            <span style="font-family:monospace;font-size:13px;color:#111827;font-weight:700">copilot-nlp-v3.2.1</span>
+            <span class="badge by">Watch</span>
+          </div>
+          <div style="font-size:11.5px;color:#6B7280">Recommendation generation for billing &amp; account skills · EU AI Act <strong style="color:#92400E">High-Risk</strong></div>
+        </div>
+        <button class="btn btn-secondary btn-sm">Open Detail →</button>
+      </div>
+
+      <!-- Version timeline -->
+      <div style="font-size:11px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Version Lineage</div>
+      <div style="position:relative;padding-left:8px">
+        <div style="position:absolute;left:11px;top:6px;bottom:6px;width:2px;background:#E5E7EB"></div>
+        <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;position:relative">
+          <div style="width:14px;height:14px;border-radius:50%;background:#16A34A;border:3px solid white;box-shadow:0 0 0 1px #16A34A;flex-shrink:0;margin-top:2px"></div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px"><span style="font-family:monospace;font-size:12.5px;font-weight:700;color:#111827">v3.2.1</span><span class="badge bg" style="font-size:10px">Production</span><span style="font-size:11px;color:#9CA3AF">Apr 24, 2026</span></div>
+            <div style="font-size:12px;color:#374151">Improved billing-dispute precision (+4.1pp). Override rate temporarily elevated; flagged for review.</div>
+            <div style="font-size:11px;color:#6B7280;margin-top:3px">Approved by: Maria Chen (CCO) · Trained on 1.4M utterances · F1: 0.873</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;position:relative">
+          <div style="width:14px;height:14px;border-radius:50%;background:#9CA3AF;border:3px solid white;box-shadow:0 0 0 1px #9CA3AF;flex-shrink:0;margin-top:2px"></div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px"><span style="font-family:monospace;font-size:12.5px;font-weight:700;color:#111827">v3.2.0</span><span class="badge bgr" style="font-size:10px">Retired</span><span style="font-size:11px;color:#9CA3AF">Mar 12, 2026</span></div>
+            <div style="font-size:12px;color:#374151">Sentiment-aware response ranking · added 6 new intent classes</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:12px;position:relative">
+          <div style="width:14px;height:14px;border-radius:50%;background:#9CA3AF;border:3px solid white;box-shadow:0 0 0 1px #9CA3AF;flex-shrink:0;margin-top:2px"></div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px"><span style="font-family:monospace;font-size:12.5px;font-weight:700;color:#111827">v3.1.0</span><span class="badge bgr" style="font-size:10px">Retired</span><span style="font-size:11px;color:#9CA3AF">Jan 28, 2026</span></div>
+            <div style="font-size:12px;color:#374151">Initial GA release for the v3 architecture. EU AI Act conformance assessment passed.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="card">
+        <div style="font-size:11px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Lineage</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:#6B7280">Base Model</span><span style="font-family:monospace;color:#111827">nice-llm-base-v2</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:#6B7280">Training Dataset</span><span style="color:#111827">cx-utterances-2026-q1</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:#6B7280">Data Residency</span><span style="color:#111827">EU-Frankfurt</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:#6B7280">Training Duration</span><span style="color:#111827">142 GPU-hr</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:#6B7280">Approval Chain</span><span style="color:#111827">2 of 2 ✓</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div style="font-size:11px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Compliance Attestations</div>
+        <div style="display:flex;flex-direction:column;gap:6px;font-size:12px">
+          <div style="display:flex;align-items:center;gap:6px;color:#15803D"><span style="font-size:14px">✓</span> EU AI Act Conformance</div>
+          <div style="display:flex;align-items:center;gap:6px;color:#15803D"><span style="font-size:14px">✓</span> GDPR Data Minimization</div>
+          <div style="display:flex;align-items:center;gap:6px;color:#15803D"><span style="font-size:14px">✓</span> SOC 2 Boundary Verified</div>
+          <div style="display:flex;align-items:center;gap:6px;color:#92400E"><span style="font-size:14px">⚠</span> Bias Re-eval due May 24</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== VIEW: INCIDENT TIMELINE ===== -->
+<div class="view" id="view-incident">
+  <div class="breadcrumb"><span class="blink">AI Trust Center</span><span>›</span><span class="blink" onclick="navigate('policy')">Policy Engine</span><span>›</span><span>Incident INC-20260507-002</span></div>
+  <div class="page-title-row">
+    <div class="page-title">
+      Override Rate Spike — Copilot NLP
+      <span class="sbadge s-error">
+        <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor"><circle cx="4" cy="4" r="4"/></svg>
+        Open · P0
+      </span>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-secondary btn-sm">Assign</button>
+      <button class="btn btn-secondary btn-sm">Mark Resolved</button>
+      <button class="btn btn-primary btn-sm">Escalate to CCO</button>
+    </div>
+  </div>
+
+  <!-- Incident summary cards -->
+  <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px">
+    <div class="card" style="padding:14px"><div style="font-size:11px;color:#6B7280;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Incident ID</div><div style="font-family:monospace;font-size:13px;color:#111827;font-weight:600">INC-20260507-002</div><div style="font-size:11px;color:#9CA3AF;margin-top:4px">Opened 10:41 AM today · 2h 14m elapsed</div></div>
+    <div class="card" style="padding:14px"><div style="font-size:11px;color:#6B7280;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Policy Triggered</div><div style="font-size:13px;color:#111827;font-weight:600">POL-002 · High Override Rate</div><div style="font-size:11px;color:#9CA3AF;margin-top:4px">override_rate_24h &gt; 0.30</div></div>
+    <div class="card" style="padding:14px"><div style="font-size:11px;color:#6B7280;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Affected Skill</div><div style="font-size:13px;color:#111827;font-weight:600">Billing Disputes</div><div style="font-size:11px;color:#9CA3AF;margin-top:4px">214 sessions · 47 overrides</div></div>
+    <div class="card" style="padding:14px"><div style="font-size:11px;color:#6B7280;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Override Rate</div><div style="font-size:18px;font-weight:700;color:#DC2626">31.4% <span style="font-size:11px;font-weight:500;color:#6B7280">/ 30% threshold</span></div><div style="font-size:11px;color:#9CA3AF;margin-top:4px">+9.7pp vs 7-day baseline</div></div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:16px">
+    <!-- LEFT: Reasoning trace timeline -->
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div><div class="card-title">Reasoning Trace</div><div style="font-size:11.5px;color:#9CA3AF">Reconstructed from audit chain · cryptographically verified</div></div>
+        <span class="badge bg" style="font-size:10.5px">Merkle ✓</span>
+      </div>
+
+      <div style="position:relative;padding-left:8px">
+        <div style="position:absolute;left:11px;top:8px;bottom:8px;width:2px;background:#E5E7EB"></div>
+
+        <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:18px;position:relative">
+          <div style="width:18px;height:18px;border-radius:50%;background:#3B82F6;border:3px solid white;box-shadow:0 0 0 1px #3B82F6;flex-shrink:0;margin-top:0;display:flex;align-items:center;justify-content:center;color:white;font-size:10px;font-weight:700">1</div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px"><span style="font-size:12.5px;font-weight:700;color:#111827">Drift detector raised soft warning</span><span style="font-size:11px;color:#9CA3AF">08:12 AM</span></div>
+            <div style="font-size:12px;color:#4B5563;margin-bottom:6px">CUSUM detector flagged a 6.2pp shift in confidence distribution for skill <code style="background:#F3F4F6;padding:1px 5px;border-radius:3px">Billing Disputes</code>. Below alert threshold — logged for trend.</div>
+            <div style="font-size:11px;color:#6B7280;background:#F9FAFB;padding:6px 9px;border-radius:4px;font-family:monospace">drift_cusum=0.062 · threshold=0.150 · model=copilot-nlp-v3.2.1</div>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:18px;position:relative">
+          <div style="width:18px;height:18px;border-radius:50%;background:#F59E0B;border:3px solid white;box-shadow:0 0 0 1px #F59E0B;flex-shrink:0;margin-top:0;display:flex;align-items:center;justify-content:center;color:white;font-size:10px;font-weight:700">2</div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px"><span style="font-size:12.5px;font-weight:700;color:#111827">Override rate climbed past 25%</span><span style="font-size:11px;color:#9CA3AF">09:54 AM</span></div>
+            <div style="font-size:12px;color:#4B5563;margin-bottom:6px">Rolling 2h override rate hit 26.8%. Concentrated on Refund &amp; Adjustment intents — 8 of 12 most-overridden recommendations involved promo-code reasoning the model was retrained on April 24.</div>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:18px;position:relative">
+          <div style="width:18px;height:18px;border-radius:50%;background:#EF4444;border:3px solid white;box-shadow:0 0 0 1px #EF4444;flex-shrink:0;margin-top:0;display:flex;align-items:center;justify-content:center;color:white;font-size:10px;font-weight:700">3</div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px"><span style="font-size:12.5px;font-weight:700;color:#111827">POL-002 threshold breached — incident opened</span><span style="font-size:11px;color:#9CA3AF">10:41 AM</span></div>
+            <div style="font-size:12px;color:#4B5563;margin-bottom:6px">Override rate hit <strong style="color:#DC2626">31.4%</strong> (24h window). Policy Engine auto-paged Trust Center on-call, opened this incident, and snapshotted the last 50 affected audit events.</div>
+            <div style="font-size:11px;color:#6B7280;background:#F9FAFB;padding:6px 9px;border-radius:4px;font-family:monospace">override_rate_24h=0.314 · threshold=0.300 · action=alert_compliance</div>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:18px;position:relative">
+          <div style="width:18px;height:18px;border-radius:50%;background:#2563EB;border:3px solid white;box-shadow:0 0 0 1px #2563EB;flex-shrink:0;margin-top:0;display:flex;align-items:center;justify-content:center;color:white;font-size:10px;font-weight:700">4</div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px"><span style="font-size:12.5px;font-weight:700;color:#111827">Root-cause hypothesis (auto-generated)</span><span style="font-size:11px;color:#9CA3AF">10:42 AM</span></div>
+            <div style="font-size:12px;color:#4B5563;margin-bottom:6px">Trust Center reasoning agent suggests training-data shift: the v3.2.1 retraining set under-represents promo-code refund cases (3.1% vs 7.4% in production traffic). Confidence on these queries has dropped 14% since deploy.</div>
+            <div style="font-size:11px;color:#1D4ED8;background:#EFF6FF;border:1px solid #DBEAFE;padding:6px 9px;border-radius:4px">→ Recommended: revert v3.2.1 to v3.2.0 in Billing Disputes skill, queue retraining with augmented promo-code corpus.</div>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:flex-start;gap:14px;position:relative">
+          <div style="width:18px;height:18px;border-radius:50%;background:white;border:2px dashed #9CA3AF;flex-shrink:0;margin-top:0;display:flex;align-items:center;justify-content:center;color:#6B7280;font-size:10px;font-weight:700">5</div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px"><span style="font-size:12.5px;font-weight:700;color:#6B7280">Awaiting human decision</span></div>
+            <div style="font-size:12px;color:#6B7280;margin-bottom:8px">Choose remediation: rollback, hotfix, or accept &amp; monitor. EU AI Act Article 14 requires the decision and reasoning be logged.</div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-primary btn-sm">Approve Rollback</button>
+              <button class="btn btn-secondary btn-sm">Open Hotfix Plan</button>
+              <button class="btn btn-secondary btn-sm">Accept &amp; Monitor</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Affected sessions + impact -->
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="card">
+        <div class="card-title" style="margin-bottom:10px">Blast Radius</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:#FEF2F2;border:1px solid #FECACA;border-radius:5px"><span style="font-size:12px;color:#991B1B;font-weight:600">Sessions affected</span><span style="font-family:monospace;font-size:13px;font-weight:700;color:#DC2626">214</span></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:5px"><span style="font-size:12px;color:#92400E;font-weight:600">Agents involved</span><span style="font-family:monospace;font-size:13px;font-weight:700;color:#92400E">11 of 14</span></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:5px"><span style="font-size:12px;color:#374151;font-weight:600">Skills</span><span style="font-size:12px;color:#111827">Billing Disputes</span></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:5px"><span style="font-size:12px;color:#374151;font-weight:600">Customer impact</span><span style="font-size:12px;color:#111827">CSAT delta -0.2</span></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:5px"><span style="font-size:12px;color:#374151;font-weight:600">Regulations in scope</span><span style="font-size:11px"><span class="badge bgr">EU AI Act</span> <span class="badge bgr">TCPA</span></span></div>
+        </div>
+      </div>
+
+      <div class="card" style="padding:0;overflow:hidden">
+        <div style="padding:12px 14px;border-bottom:1px solid #E5E7EB;display:flex;justify-content:space-between;align-items:center">
+          <div class="card-title">Top Overriding Agents</div>
+          <span style="font-size:11px;color:#6B7280">Last 2h</span>
+        </div>
+        <table class="data-table">
+          <thead><tr><th>Agent</th><th>Sessions</th><th>Override</th></tr></thead>
+          <tbody>
+            <tr><td>R. Johnson</td><td>34</td><td><span style="color:#DC2626;font-weight:700">52.9%</span></td></tr>
+            <tr><td>L. Thompson</td><td>28</td><td><span style="color:#DC2626;font-weight:700">42.8%</span></td></tr>
+            <tr><td>K. Davis</td><td>41</td><td><span style="color:#92400E;font-weight:700">29.3%</span></td></tr>
+            <tr><td>A. Martinez</td><td>52</td><td><span style="color:#15803D;font-weight:700">11.5%</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="margin-bottom:8px">Audit Chain Hash</div>
+        <div style="font-size:11px;color:#6B7280;line-height:1.6">All 214 affected events sealed under a single Merkle subtree. Verifiable independently via the audit export.</div>
+        <code style="display:block;margin-top:8px;background:#0B2D55;color:#86EFAC;padding:8px 10px;border-radius:4px;font-size:10.5px;font-family:monospace;word-break:break-all">a4f2c8d1·9e3b7c14·2f8d…ROOT</code>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== VIEW: DATA FLOW VISUALIZER ===== -->
+<div class="view" id="view-dataflow">
+  <div class="breadcrumb"><span class="blink">AI Trust Center</span><span>›</span><span>Data Flow Visualizer</span></div>
+  <div class="page-title-row">
+    <div class="page-title">Data Flow Visualizer <span class="sbadge s-active" style="font-size:11px">Live · 5,214 ev/min</span></div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <select class="form-input form-select" style="width:160px;padding:6px 28px 6px 10px;font-size:12.5px"><option>EU-Frankfurt Region</option><option>US-East Region</option><option>APAC-Sydney Region</option><option>All Regions</option></select>
+      <button class="btn btn-secondary btn-sm">Replay 24h</button>
+      <button class="btn btn-primary btn-sm">Export Lineage</button>
+    </div>
+  </div>
+
+  <!-- Legend + status -->
+  <div style="display:flex;align-items:center;gap:18px;padding:10px 14px;background:white;border:1px solid #E5E7EB;border-radius:8px;margin-bottom:14px;font-size:12px">
+    <span style="font-weight:700;color:#374151">Legend:</span>
+    <span style="display:flex;align-items:center;gap:6px;color:#6B7280"><span style="width:12px;height:12px;background:#DBEAFE;border:2px solid #2563EB;border-radius:3px"></span>Source</span>
+    <span style="display:flex;align-items:center;gap:6px;color:#6B7280"><span style="width:12px;height:12px;background:#EDE9FE;border:2px solid #7C3AED;border-radius:3px"></span>AI Module</span>
+    <span style="display:flex;align-items:center;gap:6px;color:#6B7280"><span style="width:12px;height:12px;background:#CCFBF1;border:2px solid #0D9488;border-radius:3px"></span>Storage</span>
+    <span style="display:flex;align-items:center;gap:6px;color:#6B7280"><span style="width:12px;height:12px;background:#DCFCE7;border:2px solid #16A34A;border-radius:3px"></span>Audit Sink</span>
+    <span style="display:flex;align-items:center;gap:6px;color:#6B7280"><span style="width:14px;height:2px;background:#2563EB"></span>PII tokenized</span>
+    <span style="display:flex;align-items:center;gap:6px;color:#6B7280"><span style="width:14px;height:2px;background:#DC2626"></span>PII raw — restricted</span>
+    <span style="margin-left:auto;color:#15803D;font-weight:600">● 0 cross-border violations</span>
+  </div>
+
+  <!-- Diagram canvas -->
+  <div class="card" style="padding:0;overflow:hidden">
+    <div style="position:relative;height:520px;background:linear-gradient(180deg,#FAFBFF 0%,#F2F4F7 100%);overflow:hidden">
+      <!-- Region label -->
+      <div style="position:absolute;top:14px;left:18px;background:white;border:1px solid #E5E7EB;padding:6px 12px;border-radius:6px;font-size:11.5px;font-weight:600;color:#374151;display:flex;align-items:center;gap:8px;box-shadow:0 1px 3px rgba(0,0,0,.06)">
+        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#0D9488" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        EU-Frankfurt · GDPR boundary
+      </div>
+      <div style="position:absolute;top:14px;right:18px;background:white;border:1px solid #E5E7EB;padding:6px 12px;border-radius:6px;font-size:11.5px;color:#374151;box-shadow:0 1px 3px rgba(0,0,0,.06)">
+        <span style="color:#9CA3AF">Refresh:</span> <span style="font-weight:600">2s</span> &nbsp;<span style="color:#16A34A">●</span>
+      </div>
+
+      <!-- SVG flow lines -->
+      <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none" viewBox="0 0 1200 520" preserveAspectRatio="none">
+        <defs>
+          <marker id="arrowB" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#2563EB"/></marker>
+          <marker id="arrowG" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#16A34A"/></marker>
+          <marker id="arrowR" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#DC2626"/></marker>
+        </defs>
+        <!-- Customer/Channel → Tokenizer -->
+        <path d="M180 130 C 290 130, 290 200, 380 200" stroke="#DC2626" stroke-width="2" fill="none" stroke-dasharray="5,4" marker-end="url(#arrowR)"/>
+        <path d="M180 230 C 290 230, 290 220, 380 220" stroke="#DC2626" stroke-width="2" fill="none" stroke-dasharray="5,4" marker-end="url(#arrowR)"/>
+        <path d="M180 330 C 290 330, 290 240, 380 240" stroke="#DC2626" stroke-width="2" fill="none" stroke-dasharray="5,4" marker-end="url(#arrowR)"/>
+        <!-- Tokenizer → AI modules -->
+        <path d="M540 220 C 620 220, 620 140, 720 140" stroke="#2563EB" stroke-width="2.5" fill="none" marker-end="url(#arrowB)"/>
+        <path d="M540 220 C 620 220, 620 240, 720 240" stroke="#2563EB" stroke-width="2.5" fill="none" marker-end="url(#arrowB)"/>
+        <path d="M540 220 C 620 220, 620 340, 720 340" stroke="#2563EB" stroke-width="2.5" fill="none" marker-end="url(#arrowB)"/>
+        <!-- AI modules → Audit sink -->
+        <path d="M880 140 C 970 140, 970 410, 1040 410" stroke="#16A34A" stroke-width="2.5" fill="none" marker-end="url(#arrowG)"/>
+        <path d="M880 240 C 970 240, 970 410, 1040 410" stroke="#16A34A" stroke-width="2.5" fill="none" marker-end="url(#arrowG)"/>
+        <path d="M880 340 C 970 340, 970 410, 1040 410" stroke="#16A34A" stroke-width="2.5" fill="none" marker-end="url(#arrowG)"/>
+        <!-- AI modules → Vector store -->
+        <path d="M880 240 C 920 240, 920 460, 880 460" stroke="#2563EB" stroke-width="2" fill="none" stroke-dasharray="3,3" marker-end="url(#arrowB)"/>
+      </svg>
+
+      <!-- Nodes -->
+      <!-- Sources -->
+      <div style="position:absolute;top:100px;left:60px;width:130px"><div style="background:#DBEAFE;border:2px solid #2563EB;border-radius:8px;padding:10px 12px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.06)"><div style="font-size:11px;color:#1E40AF;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-bottom:3px">Channel</div><div style="font-size:13px;font-weight:700;color:#111827">Voice</div><div style="font-size:11px;color:#6B7280">8,420 ev/min</div></div></div>
+      <div style="position:absolute;top:200px;left:60px;width:130px"><div style="background:#DBEAFE;border:2px solid #2563EB;border-radius:8px;padding:10px 12px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.06)"><div style="font-size:11px;color:#1E40AF;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-bottom:3px">Channel</div><div style="font-size:13px;font-weight:700;color:#111827">Chat</div><div style="font-size:11px;color:#6B7280">3,210 ev/min</div></div></div>
+      <div style="position:absolute;top:300px;left:60px;width:130px"><div style="background:#DBEAFE;border:2px solid #2563EB;border-radius:8px;padding:10px 12px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.06)"><div style="font-size:11px;color:#1E40AF;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-bottom:3px">CRM</div><div style="font-size:13px;font-weight:700;color:#111827">Salesforce</div><div style="font-size:11px;color:#6B7280">1,890 ev/min</div></div></div>
+
+      <!-- Tokenizer / Privacy boundary -->
+      <div style="position:absolute;top:170px;left:380px;width:160px"><div style="background:white;border:2px solid #DC2626;border-radius:8px;padding:12px;text-align:center;box-shadow:0 4px 12px rgba(220,38,38,.15);position:relative"><div style="position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:#DC2626;color:white;font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:10px;letter-spacing:.04em">PII GATE</div><div style="font-size:11px;color:#991B1B;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-top:4px;margin-bottom:4px">PII Tokenizer</div><div style="font-size:13px;font-weight:700;color:#111827">SHA-256 + Vault</div><div style="font-size:11px;color:#6B7280;margin-top:2px">99.97% mask rate</div><div style="font-size:10px;color:#15803D;margin-top:4px">● POL-003 enforced</div></div></div>
+
+      <!-- AI Modules -->
+      <div style="position:absolute;top:108px;left:720px;width:160px"><div style="background:#EDE9FE;border:2px solid #7C3AED;border-radius:8px;padding:10px 12px;box-shadow:0 1px 3px rgba(0,0,0,.06)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><span class="badge bp" style="font-size:10px">Autopilot</span><span style="font-size:10px;color:#6B7280">v2.8.0</span></div><div style="font-size:13px;font-weight:700;color:#111827">Deflection &amp; Intent</div><div style="font-size:11px;color:#6B7280">15.1k ev/h</div></div></div>
+      <div style="position:absolute;top:208px;left:720px;width:160px"><div style="background:#EDE9FE;border:2px solid #7C3AED;border-radius:8px;padding:10px 12px;box-shadow:0 1px 3px rgba(0,0,0,.06)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><span class="badge bb" style="font-size:10px">Copilot</span><span style="font-size:10px;color:#6B7280">v3.2.1</span></div><div style="font-size:13px;font-weight:700;color:#111827">NLP &amp; Sentiment</div><div style="font-size:11px;color:#6B7280">31.9k ev/h · ⚠ watch</div></div></div>
+      <div style="position:absolute;top:308px;left:720px;width:160px"><div style="background:#EDE9FE;border:2px solid #7C3AED;border-radius:8px;padding:10px 12px;box-shadow:0 1px 3px rgba(0,0,0,.06)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><span class="badge bt" style="font-size:10px">Mpower</span><span style="font-size:10px;color:#6B7280">v1.4.2</span></div><div style="font-size:13px;font-weight:700;color:#111827">Agent Orchestration</div><div style="font-size:11px;color:#6B7280">4.9k ev/h</div></div></div>
+
+      <!-- Vector store -->
+      <div style="position:absolute;top:430px;left:720px;width:160px"><div style="background:#CCFBF1;border:2px solid #0D9488;border-radius:8px;padding:10px 12px;box-shadow:0 1px 3px rgba(0,0,0,.06)"><div style="font-size:11px;color:#0F766E;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-bottom:3px">Vector Store</div><div style="font-size:13px;font-weight:700;color:#111827">KB Embeddings</div><div style="font-size:11px;color:#6B7280">2.1M vectors · EU-only</div></div></div>
+
+      <!-- Audit sink -->
+      <div style="position:absolute;top:380px;left:1040px;width:140px"><div style="background:#DCFCE7;border:2px solid #16A34A;border-radius:8px;padding:12px;text-align:center;box-shadow:0 4px 12px rgba(22,163,74,.18);position:relative"><div style="position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:#16A34A;color:white;font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:10px;letter-spacing:.04em">SEALED</div><div style="font-size:11px;color:#15803D;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-top:4px;margin-bottom:3px">Audit Sink</div><div style="font-size:13px;font-weight:700;color:#111827">Trust Ledger</div><div style="font-size:11px;color:#6B7280">Merkle · 100%</div></div></div>
+    </div>
+  </div>
+
+  <!-- Compliance facts -->
+  <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:14px">
+    <div class="card" style="padding:14px"><div style="font-size:11px;color:#6B7280;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Data Residency</div><div style="font-size:13px;color:#111827;font-weight:600;margin-bottom:2px">EU-Frankfurt only</div><div style="font-size:11px;color:#15803D">✓ GDPR Art. 44 compliant</div></div>
+    <div class="card" style="padding:14px"><div style="font-size:11px;color:#6B7280;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Tokenization</div><div style="font-size:13px;color:#111827;font-weight:600;margin-bottom:2px">SHA-256 + Vault</div><div style="font-size:11px;color:#15803D">99.97% mask rate · POL-003</div></div>
+    <div class="card" style="padding:14px"><div style="font-size:11px;color:#6B7280;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Retention</div><div style="font-size:13px;color:#111827;font-weight:600;margin-bottom:2px">90d hot · 7y cold</div><div style="font-size:11px;color:#15803D">✓ EU AI Act Art. 12</div></div>
+    <div class="card" style="padding:14px"><div style="font-size:11px;color:#6B7280;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">External Access</div><div style="font-size:13px;color:#111827;font-weight:600;margin-bottom:2px">0 third-party processors</div><div style="font-size:11px;color:#15803D">✓ DPA aligned</div></div>
+  </div>
+</div>
+
+</div><!-- end main-content -->
+<script>
+// ===== DATA =====
+const auditEvents = [
+  {id:'AE-20260507-00001',ts:'2026-05-07 10:23:45',module:'Copilot',event:'recommendation.generated',model:'copilot-nlp-v3.2.1',session:'SES-98234',agent:'A. Martinez',conf:0.87,action:'accepted',latency:245,regs:['EU AI Act','GDPR']},
+  {id:'AE-20260507-00002',ts:'2026-05-07 10:24:12',module:'Autopilot',event:'deflection.handled',model:'autopilot-v2.8.0',session:'SES-98235',agent:'—',conf:0.94,action:'auto-applied',latency:189,regs:['EU AI Act']},
+  {id:'AE-20260507-00003',ts:'2026-05-07 10:24:58',module:'Copilot',event:'recommendation.generated',model:'copilot-nlp-v3.2.1',session:'SES-98236',agent:'R. Johnson',conf:0.62,action:'rejected',latency:312,regs:['TCPA']},
+  {id:'AE-20260507-00004',ts:'2026-05-07 10:25:33',module:'Mpower Agent',event:'action.orchestrated',model:'mpower-orch-v1.4.2',session:'SES-98237',agent:'B. Chen',conf:0.79,action:'modified',latency:421,regs:['EU AI Act','GDPR','CCPA']},
+  {id:'AE-20260507-00005',ts:'2026-05-07 10:26:11',module:'Autopilot',event:'escalation.triggered',model:'autopilot-v2.8.0',session:'SES-98238',agent:'J. Williams',conf:0.71,action:'auto-applied',latency:156,regs:['EU AI Act']},
+  {id:'AE-20260507-00006',ts:'2026-05-07 10:26:45',module:'Copilot',event:'recommendation.generated',model:'copilot-nlp-v3.2.1',session:'SES-98239',agent:'K. Davis',conf:0.91,action:'accepted',latency:234,regs:['EU AI Act','GDPR']},
+  {id:'AE-20260507-00007',ts:'2026-05-07 10:27:20',module:'Mpower Agent',event:'workflow.completed',model:'mpower-orch-v1.4.2',session:'SES-98240',agent:'A. Martinez',conf:0.88,action:'accepted',latency:892,regs:['GDPR','CCPA']},
+  {id:'AE-20260507-00008',ts:'2026-05-07 10:28:04',module:'Copilot',event:'recommendation.generated',model:'copilot-sent-v2.1',session:'SES-98241',agent:'L. Thompson',conf:0.73,action:'modified',latency:278,regs:['EU AI Act']},
+  {id:'AE-20260507-00009',ts:'2026-05-07 10:28:39',module:'Autopilot',event:'deflection.handled',model:'autopilot-v2.8.0',session:'SES-98242',agent:'—',conf:0.96,action:'auto-applied',latency:143,regs:['EU AI Act']},
+  {id:'AE-20260507-00010',ts:'2026-05-07 10:29:15',module:'Copilot',event:'recommendation.generated',model:'copilot-nlp-v3.2.1',session:'SES-98243',agent:'R. Johnson',conf:0.58,action:'rejected',latency:301,regs:['TCPA','CCPA']},
+  {id:'AE-20260507-00011',ts:'2026-05-07 10:29:52',module:'Mpower Agent',event:'action.orchestrated',model:'mpower-orch-v1.4.2',session:'SES-98244',agent:'B. Chen',conf:0.83,action:'accepted',latency:567,regs:['EU AI Act','GDPR']},
+  {id:'AE-20260507-00012',ts:'2026-05-07 10:30:28',module:'Copilot',event:'recommendation.generated',model:'copilot-nlp-v3.2.1',session:'SES-98245',agent:'K. Davis',conf:0.89,action:'accepted',latency:219,regs:['EU AI Act']},
+  {id:'AE-20260507-00013',ts:'2026-05-07 10:31:03',module:'Autopilot',event:'intent.classified',model:'autopilot-int-v3.0',session:'SES-98246',agent:'—',conf:0.77,action:'auto-applied',latency:98,regs:['EU AI Act']},
+  {id:'AE-20260507-00014',ts:'2026-05-07 10:31:45',module:'Copilot',event:'recommendation.generated',model:'copilot-sent-v2.1',session:'SES-98247',agent:'J. Williams',conf:0.85,action:'accepted',latency:267,regs:['EU AI Act','GDPR']},
+  {id:'AE-20260507-00015',ts:'2026-05-07 10:32:18',module:'Mpower Agent',event:'policy.violation.detected',model:'policy-engine-v1.0',session:'SES-98248',agent:'L. Thompson',conf:0.99,action:'blocked',latency:45,regs:['EU AI Act','GDPR','TCPA']},
+  {id:'AE-20260507-00016',ts:'2026-05-07 10:32:55',module:'Copilot',event:'recommendation.generated',model:'copilot-nlp-v3.2.1',session:'SES-98249',agent:'A. Martinez',conf:0.92,action:'accepted',latency:241,regs:['EU AI Act']},
+  {id:'AE-20260507-00017',ts:'2026-05-07 10:33:30',module:'Autopilot',event:'deflection.handled',model:'autopilot-v2.8.0',session:'SES-98250',agent:'—',conf:0.88,action:'auto-applied',latency:167,regs:['EU AI Act']},
+  {id:'AE-20260507-00018',ts:'2026-05-07 10:34:06',module:'Copilot',event:'recommendation.generated',model:'copilot-nlp-v3.2.1',session:'SES-98251',agent:'R. Johnson',conf:0.76,action:'modified',latency:298,regs:['GDPR','CCPA']},
+  {id:'AE-20260507-00019',ts:'2026-05-07 10:34:41',module:'Mpower Agent',event:'workflow.completed',model:'mpower-orch-v1.4.2',session:'SES-98252',agent:'B. Chen',conf:0.91,action:'accepted',latency:734,regs:['EU AI Act','GDPR']},
+  {id:'AE-20260507-00020',ts:'2026-05-07 10:35:17',module:'Copilot',event:'recommendation.generated',model:'copilot-sent-v2.1',session:'SES-98253',agent:'K. Davis',conf:0.68,action:'rejected',latency:289,regs:['EU AI Act','TCPA']}
+];
+
+const policies = [
+  {id:'POL-001',name:'Minimum Confidence Threshold',desc:'Block AI outputs below 0.65 confidence score. Required for EU AI Act Article 12 high-risk decision logging.',trigger:'confidence_score < 0.65',action:'block_output',active:true,priority:'P0',category:'Quality Gate',violations:12},
+  {id:'POL-002',name:'High Override Rate Alert',desc:'Alert compliance team when agent override rate exceeds 30% for any model in a 24h window.',trigger:'override_rate_24h > 0.30',action:'alert_compliance',active:true,priority:'P0',category:'Model Health',violations:3},
+  {id:'POL-003',name:'PII Masking Enforcement',desc:'Ensure all customer PII is tokenized before audit record is written. Zero-tolerance policy.',trigger:'pii_detected_unmasked',action:'block_and_mask',active:true,priority:'P0',category:'Privacy',violations:0},
+  {id:'POL-004',name:'EU AI Act Art. 12 Logging',desc:'Require complete decision log for all high-risk AI outputs. Validates Article 12 record-keeping compliance.',trigger:'high_risk_decision',action:'enforce_full_logging',active:true,priority:'P0',category:'Regulatory',violations:0},
+  {id:'POL-005',name:'Model Confidence Drift Detection',desc:'Alert when confidence score distribution shifts more than 15% from 30-day baseline using CUSUM algorithm.',trigger:'drift_cusum > threshold',action:'alert_and_flag',active:true,priority:'P1',category:'Model Health',violations:1},
+  {id:'POL-006',name:'Human Review — High Risk Actions',desc:'Require human confirmation before Mpower Agent executes actions with risk score above 0.80.',trigger:'risk_score > 0.80 && module == Mpower',action:'require_human_review',active:true,priority:'P0',category:'Oversight',violations:5},
+  {id:'POL-007',name:'Auto-escalation Repeated Rejections',desc:'Auto-escalate to QA supervisor if an agent rejects 3 or more consecutive AI recommendations in a session.',trigger:'consecutive_rejections >= 3',action:'escalate_to_qa',active:false,priority:'P1',category:'Quality Gate',violations:0},
+  {id:'POL-008',name:'TCPA Consent Verification',desc:'Verify consent record exists before any AI-assisted outbound contact is initiated. Per-contact penalty risk.',trigger:'outbound_contact',action:'verify_consent',active:true,priority:'P0',category:'Regulatory',violations:2}
+];
+
+// ===== NAVIGATION =====
+function navigate(view) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const el = document.getElementById('view-' + view);
+  const nav = document.getElementById('nav-' + view);
+  if (el) el.classList.add('active');
+  if (nav) nav.classList.add('active');
+  if (view === 'dashboard') initCharts();
+  if (view === 'auditlog') renderAudit(auditEvents);
+  if (view === 'policy') renderPolicies();
+}
+
+// ===== CHARTS =====
+let chartsInit = false;
+function initCharts() {
+  if (chartsInit) return;
+  chartsInit = true;
+  const labels = ['May 1','May 2','May 3','May 4','May 5','May 6','May 7'];
+  new Chart(document.getElementById('chartVolume'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {label:'Autopilot',data:[11200,12800,13100,12400,14200,13800,15100],borderColor:'#7C3AED',backgroundColor:'rgba(124,58,237,.08)',tension:.4,fill:true,borderWidth:2,pointRadius:3,pointHoverRadius:5},
+        {label:'Copilot',data:[28500,31200,29800,32100,33400,30200,31900],borderColor:'#2563EB',backgroundColor:'rgba(37,99,235,.06)',tension:.4,fill:true,borderWidth:2,pointRadius:3,pointHoverRadius:5},
+        {label:'Mpower',data:[3800,4200,4100,4800,5200,4600,4900],borderColor:'#0D9488',backgroundColor:'rgba(13,148,136,.06)',tension:.4,fill:true,borderWidth:2,pointRadius:3,pointHoverRadius:5}
+      ]
+    },
+    options: {
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false}},
+      scales:{
+        x:{grid:{display:false},ticks:{font:{size:11},color:'#9CA3AF'}},
+        y:{grid:{color:'rgba(0,0,0,.05)'},ticks:{font:{size:11},color:'#9CA3AF',callback:v=>v>=1000?(v/1000).toFixed(0)+'k':v}}
+      }
+    }
+  });
+  new Chart(document.getElementById('chartActions'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Accepted','Auto-applied','Modified','Rejected','Blocked'],
+      datasets: [{data:[78.3,8.4,7.8,5.1,0.4],backgroundColor:['#16A34A','#2563EB','#F59E0B','#EF4444','#1F2937'],borderWidth:0,hoverOffset:4}]
+    },
+    options: {
+      responsive:true,maintainAspectRatio:false,cutout:'68%',
+      plugins:{legend:{position:'bottom',labels:{font:{size:11},color:'#6B7280',padding:10,usePointStyle:true}},
+        tooltip:{callbacks:{label:ctx=>ctx.label+': '+ctx.parsed+'%'}}}
+    }
+  });
+}
+
+// ===== AUDIT LOG =====
+function confBadge(c) {
+  if (c >= 0.85) return '<span class="badge bg">'+Math.round(c*100)+'%</span>';
+  if (c >= 0.70) return '<span class="badge by">'+Math.round(c*100)+'%</span>';
+  return '<span class="badge br">'+Math.round(c*100)+'%</span>';
+}
+function actionBadge(a) {
+  const map = {accepted:'bg',rejected:'br',modified:'by','auto-applied':'bb',blocked:'br'};
+  return '<span class="badge '+(map[a]||'bgr')+'">'+a+'</span>';
+}
+function moduleBadge(m) {
+  if (m==='Autopilot') return '<span class="badge bp">'+m+'</span>';
+  if (m==='Copilot') return '<span class="badge bb">'+m+'</span>';
+  if (m==='Mpower Agent') return '<span class="badge bt">'+m+'</span>';
+  return '<span class="badge bgr">'+m+'</span>';
+}
+function filterAudit() {
+  const s = document.getElementById('auditSearch').value.toLowerCase();
+  const mod = document.getElementById('filterModule').value;
+  const act = document.getElementById('filterAction').value;
+  const reg = document.getElementById('filterReg').value;
+  const filtered = auditEvents.filter(e => {
+    if (mod && e.module !== mod) return false;
+    if (act && e.action !== act) return false;
+    if (reg && !e.regs.includes(reg)) return false;
+    if (s && !e.id.toLowerCase().includes(s) && !e.session.toLowerCase().includes(s) && !e.agent.toLowerCase().includes(s) && !e.model.toLowerCase().includes(s)) return false;
+    return true;
+  });
+  renderAudit(filtered);
+}
+function renderAudit(data) {
+  const tb = document.getElementById('auditTbody');
+  document.getElementById('auditCount').textContent = 'Showing '+data.length+' of 62,847 events';
+  tb.innerHTML = data.map(e => {
+    const hashSuffix = e.id.slice(-8).toLowerCase();
+    const inputCtx = e.module === 'Copilot'
+      ? 'Customer query: &quot;I need help with my bill…&quot; | Channel: Voice | Queue: Billing Support'
+      : e.module === 'Autopilot'
+      ? 'Intent signal: self-service eligible | CSAT history: 4.2 | Queue depth: 14'
+      : 'Workflow: Account Update | Step: 3/6 | Prior actions: identity_verified, crm_queried';
+    const outcome = e.action === 'accepted' ? 'Recommendation applied to agent desktop'
+      : e.action === 'auto-applied' ? 'Action executed autonomously — no agent intervention'
+      : e.action === 'modified' ? 'Agent edited recommendation before applying'
+      : e.action === 'rejected' ? 'Recommendation dismissed by agent'
+      : 'Action blocked by policy engine — escalated to supervisor';
+    const confColor = e.conf>=.85?'#16A34A':e.conf>=.70?'#F59E0B':'#EF4444';
+    const confBg = e.conf>=.85?'#F0FDF4':e.conf>=.70?'#FFFBEB':'#FEF2F2';
+    const latColor = e.latency<200?'#16A34A':e.latency<400?'#F59E0B':'#EF4444';
+    const latLabel = e.latency<200?'Excellent':e.latency<400?'Acceptable':'Elevated';
+    return (
+      '<tr onclick="toggleDetail(\''+e.id+'\')" style="cursor:pointer">' +
+        '<td><span style="font-family:monospace;font-size:11.5px;color:#2563EB">'+e.id.slice(-8)+'</span></td>' +
+        '<td style="color:#6B7280;font-size:12px">'+e.ts.slice(11)+'</td>' +
+        '<td>'+moduleBadge(e.module)+'</td>' +
+        '<td><span style="font-family:monospace;font-size:11px;color:#374151">'+e.model+'</span></td>' +
+        '<td><div style="font-size:12px">'+e.session+'</div><div style="font-size:11px;color:#9CA3AF">'+e.agent+'</div></td>' +
+        '<td>'+confBadge(e.conf)+'<div class="conf-bar" style="width:60px;margin-top:4px"><div class="conf-fill" style="width:'+Math.round(e.conf*100)+'%;background:'+confColor+'"></div></div></td>' +
+        '<td>'+actionBadge(e.action)+'</td>' +
+        '<td>'+e.regs.map(r=>'<span class="badge bgr" style="margin-right:2px;font-size:10px">'+r+'</span>').join('')+'</td>' +
+        '<td><button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();toggleDetail(\''+e.id+'\')">Details</button></td>' +
+      '</tr>' +
+      '<tr><td colspan="9" style="padding:0"><div class="row-detail" id="detail-'+e.id+'">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #E5E7EB">' +
+          '<div style="display:flex;align-items:center;gap:10px">' +
+            '<svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#2563EB" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>' +
+            '<span style="font-size:13px;font-weight:700;color:#111827">Audit Event Detail</span>' +
+            '<span style="font-family:monospace;font-size:11px;color:#6B7280;background:#F3F4F6;padding:2px 8px;border-radius:4px">'+e.id+'</span>' +
+          '</div>' +
+          '<div style="display:flex;gap:8px">' +
+            '<button class="btn btn-secondary btn-sm" onclick="event.stopPropagation()"><svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg> Export</button>' +
+            '<button class="btn btn-secondary btn-sm" onclick="event.stopPropagation()"><svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/></svg> Flag for Review</button>' +
+          '</div>' +
+        '</div>' +
+        '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px">' +
+          '<div style="background:#F8FAFF;border:1px solid #DBEAFE;border-radius:6px;padding:10px"><div style="font-size:10px;color:#93C5FD;font-weight:700;letter-spacing:.06em;margin-bottom:4px">EVENT TYPE</div><div style="font-size:12.5px;color:#1E40AF;font-weight:600">'+e.event+'</div></div>' +
+          '<div style="background:#F8FAFF;border:1px solid #DBEAFE;border-radius:6px;padding:10px"><div style="font-size:10px;color:#93C5FD;font-weight:700;letter-spacing:.06em;margin-bottom:4px">TIMESTAMP (UTC)</div><div style="font-size:12px;font-family:monospace;color:#374151">'+e.ts+'</div></div>' +
+          '<div style="background:#F8FAFF;border:1px solid #DBEAFE;border-radius:6px;padding:10px"><div style="font-size:10px;color:#93C5FD;font-weight:700;letter-spacing:.06em;margin-bottom:4px">SESSION ID</div><div style="font-size:12px;font-family:monospace;color:#374151">'+e.session+'</div></div>' +
+          '<div style="background:#F8FAFF;border:1px solid #DBEAFE;border-radius:6px;padding:10px"><div style="font-size:10px;color:#93C5FD;font-weight:700;letter-spacing:.06em;margin-bottom:4px">AGENT / USER</div><div style="font-size:12.5px;color:#374151">'+(e.agent==='—'?'Autonomous (no agent)':e.agent)+'</div></div>' +
+        '</div>' +
+        '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px">' +
+          '<div style="background:white;border:1px solid #E5E7EB;border-radius:6px;padding:10px"><div style="font-size:10px;color:#9CA3AF;font-weight:700;letter-spacing:.06em;margin-bottom:4px">MODEL VERSION</div><div style="font-size:11.5px;font-family:monospace;color:#374151">'+e.model+'</div></div>' +
+          '<div style="background:white;border:1px solid #E5E7EB;border-radius:6px;padding:10px"><div style="font-size:10px;color:#9CA3AF;font-weight:700;letter-spacing:.06em;margin-bottom:4px">CONFIDENCE SCORE</div><div style="display:flex;align-items:center;gap:6px;margin-top:2px"><span style="font-size:16px;font-weight:700;color:'+confColor+'">'+(e.conf*100).toFixed(0)+'%</span><span style="font-size:10px;background:'+confBg+';color:'+confColor+';padding:1px 6px;border-radius:10px;font-weight:600">'+(e.conf>=.85?'HIGH':e.conf>=.70?'MEDIUM':'LOW')+'</span></div><div style="height:4px;background:#E5E7EB;border-radius:2px;margin-top:6px"><div style="height:4px;width:'+Math.round(e.conf*100)+'%;background:'+confColor+';border-radius:2px"></div></div></div>' +
+          '<div style="background:white;border:1px solid #E5E7EB;border-radius:6px;padding:10px"><div style="font-size:10px;color:#9CA3AF;font-weight:700;letter-spacing:.06em;margin-bottom:4px">AGENT ACTION</div>'+actionBadge(e.action)+'</div>' +
+          '<div style="background:white;border:1px solid #E5E7EB;border-radius:6px;padding:10px"><div style="font-size:10px;color:#9CA3AF;font-weight:700;letter-spacing:.06em;margin-bottom:4px">LATENCY</div><div style="font-size:16px;font-weight:700;color:'+latColor+'">'+e.latency+'<span style="font-size:11px;font-weight:400;color:#6B7280">ms</span></div><div style="font-size:10px;color:#9CA3AF;margin-top:2px">'+latLabel+' response time</div></div>' +
+        '</div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">' +
+          '<div style="background:white;border:1px solid #E5E7EB;border-radius:6px;padding:10px"><div style="font-size:10px;color:#9CA3AF;font-weight:700;letter-spacing:.06em;margin-bottom:6px">INPUT CONTEXT SNAPSHOT</div><div style="font-size:11.5px;color:#374151;line-height:1.5;background:#F9FAFB;border-radius:4px;padding:8px;font-family:monospace">'+inputCtx+'</div></div>' +
+          '<div style="background:white;border:1px solid #E5E7EB;border-radius:6px;padding:10px"><div style="font-size:10px;color:#9CA3AF;font-weight:700;letter-spacing:.06em;margin-bottom:6px">OUTCOME SUMMARY</div><div style="font-size:12px;color:#374151;line-height:1.5">'+outcome+'</div><div style="margin-top:8px"><div style="font-size:10px;color:#9CA3AF;font-weight:700;letter-spacing:.06em;margin-bottom:4px">REGULATION SCOPE</div><div>'+e.regs.map(r=>'<span class="badge bgr" style="margin-right:4px;font-size:10.5px">'+r+'</span>').join('')+'</div></div></div>' +
+        '</div>' +
+        '<div style="background:#0B2D55;border-radius:6px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between">' +
+          '<div style="display:flex;align-items:center;gap:10px"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#60A5FA" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg><span style="font-size:10px;color:#93C5FD;font-weight:700;letter-spacing:.06em">CRYPTOGRAPHIC HASH (SHA-256)</span></div>' +
+          '<span style="font-family:monospace;font-size:11px;color:#E2E8F0">a4f2c8e1b7d3'+hashSuffix+'9f5a2c6e4d8b1f7a3c9e2d6b</span>' +
+          '<span style="font-size:10px;color:#34D399;background:rgba(52,211,153,.15);padding:2px 8px;border-radius:10px;font-weight:600">&#10003; VERIFIED</span>' +
+        '</div>' +
+      '</div></td></tr>'
+    );
+  }).join('');
+}
+function toggleDetail(id) {
+  const el = document.getElementById('detail-'+id);
+  if (el) el.classList.toggle('open');
+}
+
+// ===== WIZARD =====
+let wizStep = 1;
+const wizLabels = ['Scope','Narrative','Preview','Generate'];
+function wizSync() {
+  const ind = document.getElementById('wizStepInd');
+  if (ind) ind.textContent = `Step ${wizStep} of 4 · ${wizLabels[wizStep-1]}`;
+  const back = document.getElementById('wizBackBtn');
+  if (back) back.style.visibility = wizStep > 1 ? 'visible' : 'hidden';
+  const nb = document.getElementById('wizNextBtnBottom');
+  if (nb) {
+    if (wizStep === 4) { nb.style.display = 'none'; }
+    else if (wizStep === 3) { nb.textContent = 'Generate Report ›'; nb.style.display = ''; }
+    else { nb.textContent = 'Next ›'; nb.style.display = ''; }
+  }
+}
+function wizBack() {
+  if (wizStep > 1) {
+    document.getElementById('wc'+wizStep).classList.remove('active');
+    document.getElementById('ws'+wizStep).className = 'wiz-step sp';
+    if (wizStep > 1) document.getElementById('wl'+(wizStep-1)).classList.remove('done');
+    wizStep--;
+    document.getElementById('wc'+wizStep).classList.add('active');
+    document.getElementById('ws'+wizStep).className = 'wiz-step sa';
+    const btn = document.getElementById('wizNextBtn');
+    if (btn) btn.textContent = 'Next ›';
+    wizSync();
+  }
+}
+function wizNext() {
+  if (wizStep < 4) {
+    document.getElementById('wc'+wizStep).classList.remove('active');
+    document.getElementById('ws'+wizStep).className = 'wiz-step sd';
+    if (wizStep < 4) document.getElementById('wl'+wizStep).classList.add('done');
+    wizStep++;
+    document.getElementById('wc'+wizStep).classList.add('active');
+    document.getElementById('ws'+wizStep).className = 'wiz-step sa';
+    const btn = document.getElementById('wizNextBtn');
+    if (btn) {
+      if (wizStep === 4) btn.textContent = 'Done';
+      else btn.textContent = 'Next ›';
+    }
+    wizSync();
+  }
+}
+
+// ===== GENERATE REPORT =====
+function generateReport() {
+  const pending = document.getElementById('genPending');
+  const success = document.getElementById('genSuccess');
+  pending.innerHTML = '<div style="text-align:center;padding:40px"><div style="width:48px;height:48px;border:3px solid #E5E7EB;border-top-color:#2563EB;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px"></div><div style="font-size:14px;font-weight:600;color:#111827;margin-bottom:6px">Generating Report…</div><div style="font-size:12.5px;color:#6B7280">Compiling 5.2M audit events · Appending cryptographic certificate</div></div>';
+  setTimeout(() => { pending.style.display = 'none'; success.style.display = 'block'; }, 2200);
+}
+
+// ===== NLQ =====
+const nlqResponses = {
+  'copilot rejection': {
+    title: 'Copilot Rejections — Last 7 Days',
+    summary: 'Found 6 rejection events out of 78 Copilot recommendations (7.7% rejection rate). Top reason: low confidence scores below 0.65 threshold.',
+    data: auditEvents.filter(e => e.module === 'Copilot' && e.action === 'rejected')
+  },
+  'eu ai act': {
+    title: 'EU AI Act Compliance Status',
+    summary: 'Article 12 (Record-keeping): COMPLIANT — 100% of high-risk AI decisions logged. Article 14 (Human Oversight): COMPLIANT — 21.7% human override rate documented. External validation: Ernst & Young, March 2026.',
+    data: null
+  },
+  'compliance': {
+    title: 'Compliance Status Overview',
+    summary: 'EU AI Act: Compliant ✓ | GDPR/CCPA: Compliant ✓ | TCPA: 3 exceptions under review | SOC 2 Type II: In scope. Overall compliance score: 94.2%.',
+    data: null
+  },
+  'override': {
+    title: 'Agent Override Analysis',
+    summary: 'Highest override rates: R. Johnson (34.1%, Copilot NLP), L. Thompson (28.2%, Copilot Sentiment), K. Davis (11.4%, Copilot NLP). Override rate spike on POL-002 alert triggered at 10:41 AM today.',
+    data: auditEvents.filter(e => e.action === 'rejected' || e.action === 'modified')
+  },
+  'confidence': {
+    title: 'Confidence Score Trend — Autopilot',
+    summary: 'Autopilot 30-day average: 0.87. 7-day trend: stable. Model autopilot-int-v3.0 flagged for drift (12% distribution shift, approaching 15% alert threshold). No action required yet.',
+    data: auditEvents.filter(e => e.module === 'Autopilot')
+  },
+  'violation': {
+    title: 'Policy Violations — Last 30 Days',
+    summary: '23 total violations: POL-001 (12, confidence below threshold), POL-006 (5, human review required), POL-008 (2, TCPA consent gap), POL-002 (3, override rate spike). All P0 violations resolved within SLA.',
+    data: auditEvents.filter(e => e.action === 'blocked')
+  },
+  'mpower blocked': {
+    title: 'Mpower Agent Blocked Events',
+    summary: '1 blocked event found in current view. Policy POL-006 (Human Review Required) triggered for session SES-98248. Action was halted pending CCO review.',
+    data: auditEvents.filter(e => e.module === 'Mpower Agent' && e.action === 'blocked')
+  }
+};
+
+function setNLQ(q) {
+  document.getElementById('nlqInput').value = q;
+  submitNLQ();
+}
+function submitNLQ() {
+  const q = document.getElementById('nlqInput').value.trim().toLowerCase();
+  if (!q) return;
+  const resultEl = document.getElementById('nlqResult');
+  let match = null;
+  for (const key of Object.keys(nlqResponses)) {
+    if (q.includes(key)) { match = nlqResponses[key]; break; }
+  }
+  if (!match) {
+    match = {title:'Query Results', summary:'Searched 62,847 audit events. No exact pattern match — showing most recent events. Try a more specific query or use the example chips above.', data:auditEvents.slice(0,5)};
+  }
+  let html = `<div class="nlq-result">
+    <div style="padding:12px 16px;background:#F9FAFB;border-bottom:1px solid #E5E7EB;display:flex;align-items:center;justify-content:space-between">
+      <div><div style="font-size:13.5px;font-weight:700;color:#111827">${match.title}</div><div style="font-size:12px;color:#6B7280;margin-top:2px">${match.summary}</div></div>
+      <button class="btn btn-secondary btn-sm">Export</button>
+    </div>`;
+  if (match.data && match.data.length > 0) {
+    html += `<div style="overflow-x:auto"><table class="data-table"><thead><tr><th>Event ID</th><th>Module</th><th>Model</th><th>Agent</th><th>Confidence</th><th>Action</th></tr></thead><tbody>`;
+    match.data.forEach(e => {
+      html += `<tr><td style="font-family:monospace;font-size:11.5px;color:#2563EB">${e.id.slice(-8)}</td><td>${moduleBadge(e.module)}</td><td style="font-family:monospace;font-size:11px">${e.model}</td><td style="font-size:12px">${e.agent}</td><td>${confBadge(e.conf)}</td><td>${actionBadge(e.action)}</td></tr>`;
+    });
+    html += `</tbody></table></div>`;
+  } else {
+    html += `<div style="padding:20px;text-align:center;font-size:13px;color:#6B7280">Summary result — no tabular data. <span class="blink" onclick="navigate('boardreport')">Generate a full report →</span></div>`;
+  }
+  html += `</div>`;
+  resultEl.innerHTML = html;
+}
+
+// ===== POLICIES =====
+function renderPolicies() {
+  const el = document.getElementById('policyList');
+  el.innerHTML = policies.map(p => `
+    <div class="pol-card" onclick="alert('Policy editor — ${p.id}: ${p.name}')">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          <span class="${p.priority==='P0'?'p0tag':'p1tag'}">${p.priority}</span>
+          <span style="font-size:13px;font-weight:700;color:#111827">${p.name}</span>
+          <span class="badge bgr" style="font-size:10px">${p.category}</span>
+          ${p.violations>0?'<span class="badge br" style="font-size:10px">'+p.violations+' violations</span>':''}
+        </div>
+        <div style="font-size:12px;color:#6B7280;margin-bottom:4px">${p.desc}</div>
+        <div style="font-size:11px;color:#9CA3AF">Trigger: <code style="background:#F3F4F6;padding:1px 5px;border-radius:3px;font-size:10.5px">${p.trigger}</code> → <code style="background:#F3F4F6;padding:1px 5px;border-radius:3px;font-size:10.5px">${p.action}</code></div>
+      </div>
+      <div onclick="event.stopPropagation()" style="display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0">
+        <label class="toggle-sw">
+          <input type="checkbox" ${p.active?'checked':''} onchange="togglePolicy('${p.id}',this.checked)">
+          <span class="tslider"></span>
+        </label>
+        <span style="font-size:10.5px;color:#6B7280" id="polstatus-${p.id}">${p.active?'Active':'Off'}</span>
+      </div>
+    </div>
+  `).join('');
+}
+function togglePolicy(id, on) {
+  const p = policies.find(x => x.id === id);
+  if (p) { p.active = on; document.getElementById('polstatus-'+id).textContent = on?'Active':'Off'; }
+}
+
+// ===== AGENT PANEL =====
+function agentAction(action) {
+  const el = document.getElementById('agentActionStatus');
+  const map = {
+    accepted:{bg:'#DCFCE7',color:'#15803D',msg:'✓ Recommendation accepted — Audit event logged (AE-20260507-62847)'},
+    modified:{bg:'#FEF3C7',color:'#92400E',msg:'✎ Recommendation modified — Your edit has been logged alongside the AI suggestion'},
+    rejected:{bg:'#FEE2E2',color:'#DC2626',msg:'✕ Recommendation rejected — Override reason required for audit compliance'}
+  };
+  const m = map[action];
+  el.style.display = 'block';
+  el.style.background = m.bg;
+  el.style.color = m.color;
+  el.textContent = m.msg;
+}
+function thumbsUp() { alert('Feedback recorded: Helpful ✓\nThis will improve Copilot model training and appear in your Governance Dashboard.'); }
+function thumbsDown() { alert('Feedback recorded: Not Helpful\nPlease add context in the text field. This triggers a QA review flag.'); }
+
+// ===== SPIN KEYFRAME =====
+const style = document.createElement('style');
+style.textContent = '@keyframes spin{to{transform:rotate(360deg)}}';
+document.head.appendChild(style);
+
+// ===== MODELS =====
+const models = [
+  {name:'Autopilot Deflection',module:'Autopilot',version:'autopilot-v2.8.0',stage:'Production',risk:'Limited',owner:'M. Patel',conf:0.87,override:5.2,trained:'Apr 12, 2026',status:'Healthy'},
+  {name:'Copilot NLP',module:'Copilot',version:'copilot-nlp-v3.2.1',stage:'Production',risk:'High',owner:'S. Kim',conf:0.81,override:24.6,trained:'Apr 24, 2026',status:'Watch'},
+  {name:'Copilot Sentiment',module:'Copilot',version:'copilot-sent-v2.1',stage:'Production',risk:'Limited',owner:'S. Kim',conf:0.79,override:8.4,trained:'Mar 02, 2026',status:'Healthy'},
+  {name:'Mpower Orchestration',module:'Mpower',version:'mpower-orch-v1.4.2',stage:'Production',risk:'High',owner:'D. Reyes',conf:0.85,override:7.8,trained:'Mar 28, 2026',status:'Healthy'},
+  {name:'Autopilot Intent',module:'Autopilot',version:'autopilot-int-v3.0',stage:'Production',risk:'Limited',owner:'M. Patel',conf:0.76,override:11.1,trained:'Feb 18, 2026',status:'Drift'},
+  {name:'Copilot NLP (next)',module:'Copilot',version:'copilot-nlp-v3.3.0-rc1',stage:'Staging',risk:'High',owner:'S. Kim',conf:0.86,override:0,trained:'May 04, 2026',status:'Pending'},
+  {name:'Mpower Reasoning',module:'Mpower',version:'mpower-reason-v0.9',stage:'Staging',risk:'High',owner:'D. Reyes',conf:0.82,override:0,trained:'May 02, 2026',status:'Pending'}
+];
+function renderModels() {
+  const tb = document.getElementById('modelsTbody'); if (!tb) return;
+  const stageBadge = s => s==='Production' ? '<span class="badge bg">Production</span>' : s==='Staging' ? '<span class="badge bb">Staging</span>' : '<span class="badge bgr">Retired</span>';
+  const riskBadge = r => r==='High' ? '<span class="badge br">High Risk</span>' : r==='Limited' ? '<span class="badge by">Limited</span>' : '<span class="badge bgr">Minimal</span>';
+  const statusBadge = s => s==='Healthy'?'<span class="badge bg">Healthy</span>':s==='Watch'?'<span class="badge by">Watch</span>':s==='Drift'?'<span class="badge by">Drift</span>':'<span class="badge bb">Pending</span>';
+  const modBadge = m => m==='Autopilot'?'<span class="badge bp">Autopilot</span>':m==='Copilot'?'<span class="badge bb">Copilot</span>':'<span class="badge bt">Mpower</span>';
+  tb.innerHTML = models.map(m => '<tr style="cursor:pointer"><td><div style="font-weight:600;color:#111827;font-size:12.5px">'+m.name+'</div><div style="font-size:11px;color:#6B7280">'+modBadge(m.module)+'</div></td><td><span style="font-family:monospace;font-size:11.5px;color:#374151">'+m.version+'</span></td><td>'+stageBadge(m.stage)+'</td><td>'+riskBadge(m.risk)+'</td><td style="font-size:12px">'+m.owner+'</td><td><span style="color:'+(m.conf>=.85?'#16A34A':m.conf>=.75?'#92400E':'#DC2626')+';font-weight:600">'+m.conf.toFixed(2)+'</span></td><td>'+(m.override>0?'<span style="color:'+(m.override>20?'#DC2626':m.override>10?'#92400E':'#16A34A')+';font-weight:600">'+m.override.toFixed(1)+'%</span>':'<span style="color:#9CA3AF">—</span>')+'</td><td style="font-size:12px;color:#6B7280">'+m.trained+'</td><td>'+statusBadge(m.status)+'</td></tr>').join('');
+}
+
+// ===== INIT =====
+window.addEventListener('load', () => {
+  const params = new URLSearchParams(location.search);
+  const v = params.get('view');
+  if (v && document.getElementById('view-' + v)) {
+    navigate(v);
+  } else {
+    initCharts();
+  }
+  renderAudit(auditEvents);
+  renderPolicies();
+  if (typeof renderModels === 'function') renderModels();
+  if (typeof renderIncident === 'function') renderIncident();
+  if (typeof renderDataflow === 'function') renderDataflow();
+});
+</script>
+</body>
+</html>
