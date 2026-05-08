@@ -1,6 +1,6 @@
 'use client';
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
 
@@ -13,33 +13,28 @@ type Props = {
 
 export default function GovernanceScoreChart({ trend, isLoading }: Props) {
   return (
-    <div className="rounded-lg border border-gray-800 bg-gray-900 p-5">
-      <h2 className="mb-4 text-sm font-medium text-gray-300">
-        Governance Score — 6 Week Trend
-      </h2>
+    <div className="rounded-lg border border-[#E5E7EB] bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,.06)]">
+      <div className="mb-1">
+        <div className="text-[13.5px] font-bold text-[#111827]">AI Decision Volume</div>
+        <div className="text-[11.5px] text-[#9CA3AF]">Governance score — 6 week trend</div>
+      </div>
       {isLoading ? (
-        <LoadingSkeleton className="h-60" />
+        <LoadingSkeleton className="h-[180px] mt-3" />
       ) : trend.length === 0 ? (
-        <div className="flex h-60 items-center justify-center text-sm text-gray-500">
-          No trend data yet — run <code className="mx-1 text-gray-400">make seed</code> to populate history
+        <div className="flex h-[180px] items-center justify-center text-sm text-[#6B7280]">
+          No trend data yet — run <code className="mx-1 text-[#374151]">make seed</code> to populate history
         </div>
       ) : (
-        <ResponsiveContainer width="100%" height={240}>
+        <ResponsiveContainer width="100%" height={180}>
           <LineChart data={trend}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
-            <XAxis dataKey="date" stroke="#6b7280" tick={{ fontSize: 12 }} />
-            <YAxis domain={[50, 100]} stroke="#6b7280" tick={{ fontSize: 12 }} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" />
+            <XAxis dataKey="date" stroke="#9CA3AF" tick={{ fontSize: 11, fill: '#6B7280' }} />
+            <YAxis domain={[50, 100]} stroke="#9CA3AF" tick={{ fontSize: 11, fill: '#6B7280' }} />
             <Tooltip
-              contentStyle={{ backgroundColor: '#111827', border: '1px solid #374151' }}
-              labelStyle={{ color: '#f9fafb' }}
+              contentStyle={{ backgroundColor: '#fff', border: '1px solid #E5E7EB', borderRadius: 6, fontSize: 12 }}
+              labelStyle={{ color: '#111827', fontWeight: 600 }}
             />
-            <Line
-              type="monotone"
-              dataKey="score"
-              stroke="#3b82f6"
-              strokeWidth={2}
-              dot={{ fill: '#3b82f6', r: 4 }}
-            />
+            <Line type="monotone" dataKey="score" name="Governance Score" stroke="#2563EB" strokeWidth={2} dot={{ fill: '#2563EB', r: 3 }} />
           </LineChart>
         </ResponsiveContainer>
       )}

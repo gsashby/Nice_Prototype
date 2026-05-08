@@ -1,12 +1,24 @@
 'use client';
 import { useModelHealth } from '@/hooks/useModelHealth';
-import StatusBadge from '@/components/shared/StatusBadge';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
 
-function modelStatus(score: number): 'healthy' | 'warning' | 'critical' {
-  if (score >= 85) return 'healthy';
-  if (score >= 70) return 'warning';
-  return 'critical';
+const moduleStyles: Record<string, string> = {
+  autopilot:  'bg-[#EDE9FE] text-[#6D28D9]',
+  copilot:    'bg-[#DBEAFE] text-[#1D4ED8]',
+  mpower:     'bg-[#CCFBF1] text-[#0F766E]',
+};
+
+function moduleColor(name: string) {
+  const lower = name.toLowerCase();
+  if (lower.includes('autopilot')) return moduleStyles.autopilot;
+  if (lower.includes('copilot'))   return moduleStyles.copilot;
+  return moduleStyles.mpower;
+}
+
+function statusBadge(score: number) {
+  if (score >= 85) return { cls: 'bg-[#DCFCE7] text-[#15803D]', label: 'Healthy' };
+  if (score >= 70) return { cls: 'bg-[#FEF3C7] text-[#92400E]', label: 'Watch' };
+  return { cls: 'bg-[#FEE2E2] text-[#DC2626]', label: 'Critical' };
 }
 
 export default function ModelHealthTable() {
@@ -14,49 +26,51 @@ export default function ModelHealthTable() {
   const models = data?.models ?? [];
 
   return (
-    <div className="rounded-lg border border-gray-800 bg-gray-900">
-      <div className="border-b border-gray-800 px-5 py-4">
-        <h2 className="text-sm font-medium text-gray-300">Model Health Overview</h2>
+    <div className="overflow-hidden rounded-lg border border-[#E5E7EB] bg-white shadow-[0_1px_3px_rgba(0,0,0,.06)]">
+      <div className="border-b border-[#E5E7EB] px-4 py-3.5">
+        <div className="text-[13.5px] font-bold text-[#111827]">Module Health</div>
+        <div className="text-[11.5px] text-[#9CA3AF]">Audit coverage &amp; model status</div>
       </div>
 
       {isLoading ? (
         <div className="space-y-px p-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <LoadingSkeleton key={i} className="h-10" />
-          ))}
+          {Array.from({ length: 4 }).map((_, i) => <LoadingSkeleton key={i} className="h-10" />)}
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full border-collapse">
             <thead>
-              <tr className="border-b border-gray-800 text-left text-xs text-gray-500">
-                <th className="px-5 py-3 font-medium">Model</th>
-                <th className="px-5 py-3 font-medium">Type</th>
-                <th className="px-5 py-3 font-medium">Status</th>
-                <th className="px-5 py-3 font-medium">Gov. Score</th>
-                <th className="px-5 py-3 font-medium">Bias Score</th>
-                <th className="px-5 py-3 font-medium">Avg Confidence</th>
-                <th className="px-5 py-3 font-medium">Inferences (7d)</th>
+              <tr className="border-b-2 border-[#E5E7EB] bg-[#F9FAFB] text-left">
+                <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Module</th>
+                <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Model Version</th>
+                <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Coverage</th>
+                <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Avg Conf.</th>
+                <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Gov. Score</th>
+                <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Status</th>
               </tr>
             </thead>
             <tbody>
-              {models.map((m) => (
-                <tr key={m.id} className="border-b border-gray-800/50 hover:bg-gray-800/30">
-                  <td className="px-5 py-3 font-medium text-white">{m.name}</td>
-                  <td className="px-5 py-3 text-gray-400">{m.type}</td>
-                  <td className="px-5 py-3">
-                    <StatusBadge status={modelStatus(m.governance_score)} />
-                  </td>
-                  <td className="px-5 py-3 text-white">{m.governance_score.toFixed(1)}%</td>
-                  <td className="px-5 py-3 text-white">{m.bias_score.toFixed(3)}</td>
-                  <td className="px-5 py-3 text-white">
-                    {(m.confidence_avg * 100).toFixed(1)}%
-                  </td>
-                  <td className="px-5 py-3 text-gray-400">
-                    {m.total_inferences.toLocaleString()}
-                  </td>
-                </tr>
-              ))}
+              {models.map((m) => {
+                const status = statusBadge(m.governance_score);
+                return (
+                  <tr key={m.id} className="border-b border-[#F3F4F6] hover:bg-[#F9FAFB] transition-colors">
+                    <td className="px-3.5 py-2.5 text-[12.5px] text-[#374151]">
+                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${moduleColor(m.name)}`}>
+                        {m.name}
+                      </span>
+                    </td>
+                    <td className="px-3.5 py-2.5 font-mono text-[11.5px] text-[#374151]">{m.type}</td>
+                    <td className="px-3.5 py-2.5 text-[12.5px] font-bold text-[#16A34A]">100%</td>
+                    <td className="px-3.5 py-2.5 text-[12.5px] text-[#374151]">{(m.confidence_avg).toFixed(2)}</td>
+                    <td className="px-3.5 py-2.5 text-[12.5px] text-[#374151]">{m.governance_score.toFixed(1)}%</td>
+                    <td className="px-3.5 py-2.5">
+                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${status.cls}`}>
+                        {status.label}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
