@@ -41,7 +41,7 @@ export default function ModelHealthTable() {
           <table className="w-full border-collapse">
             <thead>
               <tr className="border-b-2 border-[#E5E7EB] bg-[#F9FAFB] text-left">
-                <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Module</th>
+                <th className="pl-4 pr-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Module</th>
                 <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Model Version</th>
                 <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Coverage</th>
                 <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Avg Conf.</th>
@@ -54,7 +54,7 @@ export default function ModelHealthTable() {
                 const status = statusBadge(m.governance_score);
                 return (
                   <tr key={m.id} className="border-b border-[#F3F4F6] hover:bg-[#F9FAFB] transition-colors">
-                    <td className="px-3.5 py-2.5 text-[12.5px] text-[#374151]">
+                    <td className="pl-4 pr-3.5 py-2.5 text-[12.5px] text-[#374151]">
                       <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${moduleColor(m.name)}`}>
                         {m.name}
                       </span>
