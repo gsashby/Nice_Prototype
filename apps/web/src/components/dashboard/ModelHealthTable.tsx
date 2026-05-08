@@ -27,7 +27,7 @@ export default function ModelHealthTable() {
 
   return (
     <div className="overflow-hidden rounded-lg border border-[#E5E7EB] bg-white shadow-[0_1px_3px_rgba(0,0,0,.06)]">
-      <div className="border-b border-[#E5E7EB] px-4 py-3.5">
+      <div style={{ padding: '16px 16px 14px' }}>
         <div className="text-[13.5px] font-bold text-[#111827]">Module Health</div>
         <div className="text-[11.5px] text-[#9CA3AF]">Audit coverage &amp; model status</div>
       </div>

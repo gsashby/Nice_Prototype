@@ -11,7 +11,7 @@ export default function GovernanceDashboard() {
   const { data, isLoading, isError } = useGovernanceMetrics();
 
   return (
-    <div className="space-y-5">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       <PageHeader
         title="Governance Dashboard"
         actions={
@@ -33,7 +33,7 @@ export default function GovernanceDashboard() {
         }
       />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,minmax(0,1fr))', gap: 16 }}>
         {isLoading ? (
           Array.from({ length: 4 }).map((_, i) => (
             <LoadingSkeleton key={i} className="h-[116px]" />
@@ -87,13 +87,13 @@ export default function GovernanceDashboard() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <GovernanceScoreChart trend={data?.trend ?? []} isLoading={isLoading} />
-        </div>
+      {/* Charts row: 2fr 1fr */}
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16 }}>
+        <GovernanceScoreChart trend={data?.trend ?? []} isLoading={isLoading} />
         <AlertFeed />
       </div>
 
+      {/* Bottom row: 1fr 1fr */}
       <ModelHealthTable />
     </div>
   );
