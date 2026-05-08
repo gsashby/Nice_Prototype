@@ -1,32 +1,56 @@
 import { cn } from '@/lib/utils';
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
 type KpiCardProps = {
   title: string;
   value: string;
-  unit: string;
+  unit?: string;
   trend: 'up' | 'down' | 'stable';
   delta: string;
+  accentGradient?: string;
+  iconBg?: string;
+  iconColor?: string;
+  valueColor?: string;
+  icon: React.ReactNode;
 };
 
-const trendConfig = {
-  up: { icon: TrendingUp, color: 'text-emerald-400' },
-  down: { icon: TrendingDown, color: 'text-red-400' },
-  stable: { icon: Minus, color: 'text-gray-400' },
-};
-
-export default function KpiCard({ title, value, unit, trend, delta }: KpiCardProps) {
-  const { icon: Icon, color } = trendConfig[trend];
+export default function KpiCard({
+  title,
+  value,
+  unit,
+  trend,
+  delta,
+  accentGradient = 'linear-gradient(90deg,#2563EB,#60A5FA)',
+  iconBg = '#EFF6FF',
+  valueColor = '#111827',
+  icon,
+}: KpiCardProps) {
   return (
-    <div className="rounded-lg border border-gray-800 bg-gray-900 p-5">
-      <p className="text-sm text-gray-400">{title}</p>
-      <div className="mt-2 flex items-baseline gap-1">
-        <span className="text-3xl font-bold text-white">{value}</span>
-        {unit && <span className="text-lg text-gray-400">{unit}</span>}
-      </div>
-      <div className={cn('mt-2 flex items-center gap-1 text-sm', color)}>
-        <Icon className="h-4 w-4" />
-        <span>{delta} from last period</span>
+    <div className="overflow-hidden rounded-lg border border-[#E5E7EB] bg-white shadow-[0_1px_3px_rgba(0,0,0,.06)] min-w-0">
+      <div style={{ height: 4, background: accentGradient }} />
+      <div className="p-4">
+        <div className="mb-2.5 flex items-start justify-between">
+          <div className="text-[11px] font-bold uppercase tracking-[.06em] text-[#6B7280]">{title}</div>
+          <div
+            className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg"
+            style={{ background: iconBg }}
+          >
+            {icon}
+          </div>
+        </div>
+        <div className="mb-2 text-[32px] font-bold leading-none" style={{ color: valueColor }}>
+          {value}{unit}
+        </div>
+        {delta && (
+          <div className={cn('flex items-center gap-1 text-[12px]', trend === 'up' ? 'text-[#15803D]' : trend === 'down' ? 'text-[#DC2626]' : 'text-[#6B7280]')}>
+            {trend === 'up' && (
+              <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><polyline points="18 15 12 9 6 15"/></svg>
+            )}
+            {trend === 'down' && (
+              <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><polyline points="6 9 12 15 18 9"/></svg>
+            )}
+            {delta}
+          </div>
+        )}
       </div>
     </div>
   );

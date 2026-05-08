@@ -1,5 +1,5 @@
 'use client';
-import { Bell, Settings, User } from 'lucide-react';
+import { Bell, HelpCircle, LayoutGrid } from 'lucide-react';
 import { useAlertsStore } from '@/stores/alerts-store';
 
 export default function TopHeader() {
@@ -7,27 +7,47 @@ export default function TopHeader() {
   const unacknowledged = alerts.filter((a) => !a.acknowledged).length;
 
   return (
-    <header className="flex h-14 items-center justify-between border-b border-gray-800 bg-gray-900 px-6">
-      <div className="text-sm text-gray-400">
-        Enterprise AI Governance Platform
+    <header className="flex h-12 items-center justify-between px-4 z-50" style={{ background: '#0B2D55' }}>
+      {/* Left */}
+      <div className="flex items-center gap-2">
+        <button className="flex h-[34px] w-[34px] items-center justify-center rounded-md text-white/70 hover:bg-white/10 hover:text-white transition-colors">
+          <LayoutGrid className="h-[17px] w-[17px]" />
+        </button>
+        <div className="h-5 w-px bg-white/15" />
+        <span className="text-sm text-white/65">Admin</span>
       </div>
-      <div className="flex items-center gap-3">
-        <button className="relative text-gray-400 hover:text-white transition-colors">
-          <Bell className="h-5 w-5" />
+
+      {/* Center logo */}
+      <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 text-white font-bold text-[17px] tracking-tight">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <path d="M12 2L2 7l10 5 10-5-10-5z" fill="white" />
+          <path d="M2 17l10 5 10-5M2 12l10 5 10-5" stroke="white" strokeWidth="1.5" strokeLinecap="round" fill="none" opacity=".7" />
+        </svg>
+        <span>CXone Mpower</span>
+      </div>
+
+      {/* Right */}
+      <div className="flex items-center gap-1.5">
+        <button className="relative flex h-[34px] w-[34px] items-center justify-center rounded-md text-white/70 hover:bg-white/10 hover:text-white transition-colors">
+          <Bell className="h-[17px] w-[17px]" />
           {unacknowledged > 0 && (
-            <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs text-white">
+            <span className="absolute right-[3px] top-[3px] flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white border-2 border-[#0B2D55]">
               {unacknowledged}
             </span>
           )}
         </button>
-        <button className="text-gray-400 hover:text-white transition-colors">
-          <Settings className="h-5 w-5" />
+        <button className="flex h-[34px] w-[34px] items-center justify-center rounded-md text-white/70 hover:bg-white/10 hover:text-white transition-colors">
+          <HelpCircle className="h-[17px] w-[17px]" />
         </button>
-        <button className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors">
-          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600">
-            <User className="h-4 w-4 text-white" />
+        <div className="h-5 w-px bg-white/15 mx-1" />
+        <button className="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-white/10 transition-colors cursor-pointer">
+          <div className="text-right">
+            <div className="text-[12.5px] font-semibold text-white leading-tight">Gerald Ashby</div>
+            <div className="text-[10.5px] text-white/60 leading-tight">Director, Product Management</div>
           </div>
-          <span>Admin</span>
+          <div className="flex h-[30px] w-[30px] items-center justify-center rounded-full bg-blue-700 text-white text-[11px] font-bold flex-shrink-0">
+            GA
+          </div>
         </button>
       </div>
     </header>
