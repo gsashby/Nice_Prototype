@@ -2,13 +2,15 @@
 import { useState } from 'react';
 import { Search } from 'lucide-react';
 
-export default function NlqInput() {
+type Props = { onQuery: (q: string) => void };
+
+export default function NlqInput({ onQuery }: Props) {
   const [query, setQuery] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    // TODO: wire to useNlqQuery hook
-  };
+    onQuery(query);
+  }
 
   return (
     <form onSubmit={handleSubmit} className="relative">

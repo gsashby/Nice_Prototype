@@ -1,4 +1,19 @@
-export default function NlqResultTable() {
+'use client';
+import { format } from 'date-fns';
+import { useAuditLog } from '@/hooks/useAuditLog';
+import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
+import type { NlqResult } from '@/lib/parseNlq';
+
+type Props = { result: NlqResult | null };
+
+const outcomeBadge: Record<string, string> = {
+  allowed:        'bg-[#DCFCE7] text-[#15803D]',
+  blocked:        'bg-[#FEE2E2] text-[#DC2626]',
+  flagged:        'bg-[#FEF3C7] text-[#92400E]',
+  'auto-applied': 'bg-[#DBEAFE] text-[#1D4ED8]',
+};
+
+function EmptyState() {
   return (
     <div className="overflow-hidden rounded-lg border border-[#E5E7EB] bg-white shadow-[0_1px_3px_rgba(0,0,0,.06)]">
       <div style={{ padding: '16px 16px 14px', borderBottom: '1px solid #E5E7EB' }}>
@@ -8,6 +23,98 @@ export default function NlqResultTable() {
       <div className="flex items-center justify-center py-16 text-[13px] text-[#9CA3AF]">
         Run a query above to see results
       </div>
+    </div>
+  );
+}
+
+export default function NlqResultTable({ result }: Props) {
+  const { data, isLoading, isError } = useAuditLog(
+    result?.filters ?? { page: 1, pageSize: 25 },
+  );
+
+  if (!result) return <EmptyState />;
+
+  const events = data?.events ?? [];
+  const total = data?.total ?? 0;
+
+  return (
+    <div className="overflow-hidden rounded-lg border border-[#E5E7EB] bg-white shadow-[0_1px_3px_rgba(0,0,0,.06)]">
+      {/* Header */}
+      <div className="flex items-center justify-between" style={{ padding: '14px 16px', borderBottom: '1px solid #E5E7EB' }}>
+        <div>
+          <div className="text-[13.5px] font-bold text-[#111827]">Query Results</div>
+          {!isLoading && (
+            <div className="text-[11.5px] text-[#9CA3AF]">{total.toLocaleString()} events matched</div>
+          )}
+        </div>
+        {/* Interpreted-as tags */}
+        <div className="flex flex-wrap gap-1.5 justify-end">
+          {result.tags.map((tag) => (
+            <span key={tag} className="inline-flex items-center rounded-full bg-[#EFF6FF] px-2 py-0.5 text-[11px] font-semibold text-[#2563EB]">
+              {tag}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* Body */}
+      {isLoading ? (
+        <div className="space-y-px p-4">
+          {Array.from({ length: 6 }).map((_, i) => <LoadingSkeleton key={i} className="h-10" />)}
+        </div>
+      ) : isError ? (
+        <div className="p-4 text-[13px] text-red-600">Failed to load results — is the API running?</div>
+      ) : events.length === 0 ? (
+        <div className="flex items-center justify-center py-12 text-[13px] text-[#9CA3AF]">
+          No events matched your query
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="border-b-2 border-[#E5E7EB] bg-[#F9FAFB] text-left">
+                <th className="pl-4 pr-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Event ID</th>
+                <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Timestamp</th>
+                <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Module</th>
+                <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Model</th>
+                <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Confidence</th>
+                <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Outcome</th>
+                <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Policy Violations</th>
+              </tr>
+            </thead>
+            <tbody>
+              {events.map((event) => (
+                <tr key={event.id} className="border-b border-[#F3F4F6] hover:bg-[#F9FAFB] transition-colors">
+                  <td className="pl-4 pr-3.5 py-2.5 font-mono text-[11px] text-[#6B7280]">
+                    {event.id.slice(0, 8).toUpperCase()}
+                  </td>
+                  <td className="px-3.5 py-2.5 font-mono text-[11px] text-[#6B7280] whitespace-nowrap">
+                    {format(new Date(event.event_time), 'yyyy-MM-dd HH:mm:ss')}
+                  </td>
+                  <td className="px-3.5 py-2.5 text-[12.5px] text-[#374151]">{event.event_type}</td>
+                  <td className="px-3.5 py-2.5 font-mono text-[11.5px] text-[#374151]">{event.model_name || '—'}</td>
+                  <td className="px-3.5 py-2.5 text-[12.5px] text-[#374151]">
+                    {(event.confidence_score * 100).toFixed(1)}%
+                  </td>
+                  <td className="px-3.5 py-2.5">
+                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${outcomeBadge[event.outcome] ?? 'bg-[#F3F4F6] text-[#4B5563]'}`}>
+                      {event.outcome}
+                    </span>
+                  </td>
+                  <td className="px-3.5 py-2.5 text-[11px] text-[#6B7280]">
+                    {event.policy_violations?.length > 0
+                      ? event.policy_violations.map((v, i) => (
+                          <span key={i} className="mr-1 inline-flex items-center rounded-full bg-[#DBEAFE] px-1.5 py-0.5 text-[10px] font-semibold text-[#1D4ED8]">{v}</span>
+                        ))
+                      : <span className="text-[#D1D5DB]">—</span>
+                    }
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
