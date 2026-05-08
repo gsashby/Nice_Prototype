@@ -16,16 +16,19 @@ export default function GovernanceDashboard() {
         title="Governance Dashboard"
         actions={
           <div className="flex items-center gap-2">
-            <select className="h-8 rounded-[5px] border border-[#D1D5DB] bg-white px-2 pr-7 text-[12.5px] text-[#1F2937] focus:border-[#2563EB] focus:outline-none appearance-none" style={{ backgroundImage: "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")", backgroundPosition: 'right 6px center', backgroundRepeat: 'no-repeat', backgroundSize: '14px' }}>
+            <select
+              className="appearance-none rounded-[5px] border border-[#D1D5DB] bg-white text-[12.5px] text-[#1F2937] focus:border-[#2563EB] focus:outline-none"
+              style={{ padding: '7px 32px 7px 10px', width: 160, backgroundImage: "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")", backgroundPosition: 'right 8px center', backgroundRepeat: 'no-repeat', backgroundSize: '16px' }}
+            >
               <option>Last 7 Days</option>
               <option>Last 30 Days</option>
               <option>Last 90 Days</option>
             </select>
-            <button className="flex items-center gap-1.5 rounded-[5px] border border-[#D1D5DB] bg-white px-3 py-1.5 text-[13px] font-semibold text-[#374151] hover:bg-[#F9FAFB] transition-colors">
+            <button className="inline-flex items-center gap-[6px] rounded-[5px] border border-[#D1D5DB] bg-white font-semibold text-[#374151] hover:bg-[#F9FAFB] transition-all whitespace-nowrap" style={{ padding: '4px 10px', fontSize: 12 }}>
               <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
               Export
             </button>
-            <button className="flex items-center gap-1.5 rounded-[5px] bg-[#2563EB] px-3 py-1.5 text-[13px] font-semibold text-white hover:bg-[#1D4ED8] transition-colors">
+            <button className="inline-flex items-center gap-[6px] rounded-[5px] bg-[#2563EB] font-semibold text-white hover:bg-[#1D4ED8] transition-all whitespace-nowrap" style={{ padding: '4px 10px', fontSize: 12 }}>
               <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
               Board Report
             </button>
