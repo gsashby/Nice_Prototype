@@ -70,17 +70,38 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="flex flex-col border-r border-[#E5E7EB] bg-white" style={{ width: 216, minWidth: 216 }}>
-      <div className="flex flex-col flex-1 overflow-y-auto py-2">
-        <div className="px-4 pb-1.5 pt-2.5 text-[11px] font-bold uppercase tracking-[.08em] text-[#9CA3AF]">
+    <aside
+      className="flex flex-col border-r border-[#E5E7EB] bg-white"
+      style={{ width: 216, minWidth: 216 }}
+    >
+      {/* Scrollable nav area — padding:8px 0 matches design */}
+      <div className="flex flex-1 flex-col overflow-y-auto" style={{ padding: '8px 0' }}>
+
+        {/* "AI Trust Center" top label */}
+        <div style={{ padding: '10px 16px 6px', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', color: '#9CA3AF' }}>
           AI Trust Center
         </div>
 
-        {sections.map((section) => (
+        {sections.map((section, sectionIndex) => (
           <div key={section.label}>
-            <div className="mt-1 border-t border-[#F3F4F6] px-4 pb-1 pt-2.5 text-[10.5px] font-bold uppercase tracking-[.07em] text-[#9CA3AF]">
+            {/* Section label — first one has no border/margin per design */}
+            <div
+              style={{
+                padding: '10px 16px 4px',
+                fontSize: 10.5,
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '.07em',
+                color: '#9CA3AF',
+                ...(sectionIndex === 0
+                  ? { borderTop: 'none', marginTop: 0 }
+                  : { borderTop: '1px solid #F3F4F6', marginTop: 4 }),
+              }}
+            >
               {section.label}
             </div>
+
+            {/* Nav items */}
             {section.items.map(({ href, label, icon: Icon, badge, disabled }) => {
               const active = pathname === href;
               return (
@@ -88,19 +109,27 @@ export default function Sidebar() {
                   key={href}
                   href={disabled ? '#' : href}
                   onClick={disabled ? (e) => e.preventDefault() : undefined}
-                  className={cn(
-                    'flex items-center gap-[9px] border-l-[3px] px-4 py-2 text-[13px] font-medium transition-all whitespace-nowrap',
-                    active
-                      ? 'border-l-[#2563EB] bg-[#EFF6FF] text-[#1D4ED8] font-semibold'
-                      : disabled
-                      ? 'border-l-transparent text-[#D1D5DB] cursor-default'
-                      : 'border-l-transparent text-[#4B5563] hover:bg-[#F9FAFB] hover:text-[#1F2937]'
-                  )}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 9,
+                    padding: '8px 16px',
+                    fontSize: 13,
+                    fontWeight: active ? 600 : 500,
+                    borderLeft: `3px solid ${active ? '#2563EB' : 'transparent'}`,
+                    whiteSpace: 'nowrap',
+                    transition: 'all .12s',
+                    color: active ? '#1D4ED8' : disabled ? '#D1D5DB' : '#4B5563',
+                    background: active ? '#EFF6FF' : 'transparent',
+                    cursor: disabled ? 'default' : 'pointer',
+                    textDecoration: 'none',
+                  }}
+                  className={cn(!active && !disabled && 'hover:bg-[#F9FAFB] hover:!text-[#1F2937]')}
                 >
-                  <Icon className="h-[14px] w-[14px] shrink-0" />
-                  <span className="flex-1">{label}</span>
+                  <Icon className="shrink-0 w-[14px] h-[14px]" />
+                  <span style={{ flex: 1 }}>{label}</span>
                   {badge != null && (
-                    <span className="ml-auto rounded-[10px] bg-[#FEE2E2] px-[6px] py-[1px] text-[10px] font-bold text-[#DC2626]">
+                    <span style={{ marginLeft: 'auto', background: '#FEE2E2', color: '#DC2626', fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 10 }}>
                       {badge}
                     </span>
                   )}
@@ -112,12 +141,12 @@ export default function Sidebar() {
       </div>
 
       {/* Footer */}
-      <div className="border-t border-[#F3F4F6] px-4 py-2.5">
-        <div className="mb-1 flex items-center gap-1.5 text-[11px] text-[#6B7280]">
-          <span className="h-[7px] w-[7px] rounded-full bg-[#16A34A] inline-block" />
-          Audit Coverage: <strong className="text-[#16A34A]">100%</strong>
+      <div style={{ marginTop: 'auto', borderTop: '1px solid #F3F4F6', padding: '10px 16px' }}>
+        <div style={{ fontSize: 11, color: '#6B7280', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+          <span style={{ width: 7, height: 7, background: '#16A34A', borderRadius: '50%', display: 'inline-block' }} />
+          Audit Coverage: <strong style={{ color: '#16A34A' }}>100%</strong>
         </div>
-        <div className="text-[11px] text-[#9CA3AF]">Platform v2.8.0 · Trust Center v1.0</div>
+        <div style={{ fontSize: 11, color: '#9CA3AF' }}>Platform v2.8.0 · Trust Center v1.0</div>
       </div>
     </aside>
   );
