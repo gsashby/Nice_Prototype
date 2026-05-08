@@ -1,14 +1,55 @@
 'use client';
+import { useState } from 'react';
+import { Sparkles } from 'lucide-react';
 import PageHeader from '@/components/shared/PageHeader';
 import KpiCard from '@/components/dashboard/KpiCard';
 import AlertFeed from '@/components/dashboard/AlertFeed';
 import ModelHealthTable from '@/components/dashboard/ModelHealthTable';
 import GovernanceScoreChart from '@/components/dashboard/GovernanceScoreChart';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
+import SummaryModal from '@/components/dashboard/SummaryModal';
 import { useGovernanceMetrics } from '@/hooks/useGovernanceMetrics';
+import { useAlerts } from '@/hooks/useAlerts';
+import { useModelHealth } from '@/hooks/useModelHealth';
 
 export default function GovernanceDashboard() {
   const { data, isLoading, isError } = useGovernanceMetrics();
+  const { data: alertsData } = useAlerts();
+  const { data: modelData } = useModelHealth();
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [summary, setSummary] = useState('');
+  const [summaryLoading, setSummaryLoading] = useState(false);
+  const [summaryError, setSummaryError] = useState<string | null>(null);
+
+  async function handleSummarize() {
+    setModalOpen(true);
+    setSummaryLoading(true);
+    setSummaryError(null);
+    setSummary('');
+
+    try {
+      const res = await fetch('/api/summarize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          governance_score: data?.governance_score,
+          decisions_today: '62,847',
+          policy_violations: data?.policy_violations_24h,
+          compliance_coverage: '100%',
+          alerts: alertsData?.alerts ?? [],
+          models: modelData?.models ?? [],
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? 'Request failed');
+      setSummary(json.summary);
+    } catch (e) {
+      setSummaryError((e as Error).message);
+    } finally {
+      setSummaryLoading(false);
+    }
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -31,6 +72,14 @@ export default function GovernanceDashboard() {
             <button className="inline-flex items-center gap-[6px] rounded-[5px] bg-[#2563EB] font-semibold text-white hover:bg-[#1D4ED8] transition-all whitespace-nowrap" style={{ padding: '4px 10px', fontSize: 12 }}>
               <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
               Board Report
+            </button>
+            <button
+              onClick={handleSummarize}
+              className="inline-flex items-center gap-[6px] rounded-[5px] bg-[#7C3AED] font-semibold text-white hover:bg-[#6D28D9] transition-all whitespace-nowrap"
+              style={{ padding: '4px 10px', fontSize: 12 }}
+            >
+              <Sparkles className="h-3 w-3" />
+              Summarize with AI
             </button>
           </div>
         }
@@ -96,8 +145,16 @@ export default function GovernanceDashboard() {
         <AlertFeed />
       </div>
 
-      {/* Bottom row: 1fr 1fr */}
+      {/* Bottom row */}
       <ModelHealthTable />
+
+      <SummaryModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        summary={summary}
+        isLoading={summaryLoading}
+        error={summaryError}
+      />
     </div>
   );
 }
