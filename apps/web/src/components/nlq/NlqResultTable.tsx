@@ -4,7 +4,7 @@ import { useAuditLog } from '@/hooks/useAuditLog';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
 import type { NlqResult } from '@/lib/parseNlq';
 
-type Props = { result: NlqResult | null };
+type Props = { result: NlqResult | null; onClear?: () => void };
 
 const outcomeBadge: Record<string, string> = {
   allowed:        'bg-[#DCFCE7] text-[#15803D]',
@@ -27,7 +27,7 @@ function EmptyState() {
   );
 }
 
-export default function NlqResultTable({ result }: Props) {
+export default function NlqResultTable({ result, onClear }: Props) {
   const { data, isLoading, isError } = useAuditLog(
     result?.filters ?? { page: 1, pageSize: 25 },
   );
@@ -47,13 +47,22 @@ export default function NlqResultTable({ result }: Props) {
             <div className="text-[11.5px] text-[#9CA3AF]">{total.toLocaleString()} events matched</div>
           )}
         </div>
-        {/* Interpreted-as tags */}
-        <div className="flex flex-wrap gap-1.5 justify-end">
+        {/* Interpreted-as tags + clear */}
+        <div className="flex flex-wrap items-center gap-1.5 justify-end">
           {result.tags.map((tag) => (
             <span key={tag} className="inline-flex items-center rounded-full bg-[#EFF6FF] px-2 py-0.5 text-[11px] font-semibold text-[#2563EB]">
               {tag}
             </span>
           ))}
+          {onClear && (
+            <button
+              onClick={onClear}
+              className="inline-flex items-center rounded-[5px] border border-[#D1D5DB] bg-white font-semibold text-[#6B7280] hover:bg-[#F9FAFB] hover:text-[#374151] transition-all"
+              style={{ padding: '3px 10px', fontSize: 12 }}
+            >
+              Clear
+            </button>
+          )}
         </div>
       </div>
 

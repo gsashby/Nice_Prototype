@@ -23,7 +23,7 @@ export default function NlqPage() {
       />
       <NlqInput onQuery={handleQuery} />
       {!result && <NlqSuggestions onQuery={handleQuery} />}
-      <NlqResultTable result={result} />
+      <NlqResultTable result={result} onClear={() => setResult(null)} />
     </div>
   );
 }
