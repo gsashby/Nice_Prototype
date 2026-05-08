@@ -1,9 +1,10 @@
 'use client';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuditLog } from '@/hooks/useAuditLog';
 import { format } from 'date-fns';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
-import type { AuditLogFilters } from '@/types/audit';
+import AuditLogDrawer from '@/components/audit-log/AuditLogDrawer';
+import type { AuditEvent, AuditLogFilters } from '@/types/audit';
 
 type Props = {
   filters: AuditLogFilters;
@@ -12,12 +13,12 @@ type Props = {
 };
 
 const actionBadge: Record<string, string> = {
-  accepted:     'bg-[#DCFCE7] text-[#15803D]',
-  allowed:      'bg-[#DCFCE7] text-[#15803D]',
-  rejected:     'bg-[#FEE2E2] text-[#DC2626]',
-  blocked:      'bg-[#FEE2E2] text-[#DC2626]',
-  modified:     'bg-[#FEF3C7] text-[#92400E]',
-  flagged:      'bg-[#FEF3C7] text-[#92400E]',
+  accepted:       'bg-[#DCFCE7] text-[#15803D]',
+  allowed:        'bg-[#DCFCE7] text-[#15803D]',
+  rejected:       'bg-[#FEE2E2] text-[#DC2626]',
+  blocked:        'bg-[#FEE2E2] text-[#DC2626]',
+  modified:       'bg-[#FEF3C7] text-[#92400E]',
+  flagged:        'bg-[#FEF3C7] text-[#92400E]',
   'auto-applied': 'bg-[#DBEAFE] text-[#1D4ED8]',
 };
 
@@ -32,6 +33,7 @@ function ActionBadge({ value }: { value: string }) {
 
 export default function AuditLogTable({ filters, onPageChange, onTotalChange }: Props) {
   const { data, isLoading, isError } = useAuditLog(filters);
+  const [selected, setSelected] = useState<AuditEvent | null>(null);
 
   const events = data?.events ?? [];
   const total = data?.total ?? 0;
@@ -72,11 +74,15 @@ export default function AuditLogTable({ filters, onPageChange, onTotalChange }: 
                 <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Confidence</th>
                 <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Action</th>
                 <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Regulations</th>
+                <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280]"></th>
               </tr>
             </thead>
             <tbody>
               {events.map((event) => (
-                <tr key={event.id} className="border-b border-[#F3F4F6] hover:bg-[#F9FAFB] cursor-pointer transition-colors">
+                <tr
+                  key={event.id}
+                  className="border-b border-[#F3F4F6] hover:bg-[#F9FAFB] transition-colors"
+                >
                   <td className="pl-4 pr-3.5 py-2.5 font-mono text-[11px] text-[#6B7280]">
                     {event.id.slice(0, 8).toUpperCase()}
                   </td>
@@ -107,6 +113,14 @@ export default function AuditLogTable({ filters, onPageChange, onTotalChange }: 
                       : <span className="text-[#D1D5DB]">—</span>
                     }
                   </td>
+                  <td className="px-3.5 py-2.5">
+                    <button
+                      onClick={() => setSelected(event)}
+                      className="rounded-[5px] border border-[#D1D5DB] bg-white px-2 py-0.5 text-[11px] font-semibold text-[#374151] hover:bg-[#F9FAFB] transition-colors whitespace-nowrap"
+                    >
+                      Show Details
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -136,6 +150,8 @@ export default function AuditLogTable({ filters, onPageChange, onTotalChange }: 
           </button>
         </div>
       </div>
+
+      <AuditLogDrawer event={selected} onClose={() => setSelected(null)} />
     </>
   );
 }
