@@ -12,16 +12,18 @@ export default function NlqInput() {
 
   return (
     <form onSubmit={handleSubmit} className="relative">
-      <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-500" />
+      <Search className="absolute left-4 top-1/2 h-[16px] w-[16px] -translate-y-1/2 text-[#9CA3AF]" />
       <input
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Ask anything about your governance data…"
-        className="w-full rounded-lg border border-gray-700 bg-gray-900 py-4 pl-12 pr-4 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none text-base"
+        className="w-full rounded-lg border border-[#D1D5DB] bg-white py-3.5 pr-24 text-[13.5px] text-[#1F2937] placeholder-[#9CA3AF] focus:border-[#2563EB] focus:outline-none shadow-[0_1px_3px_rgba(0,0,0,.06)]"
+        style={{ paddingLeft: 44 }}
       />
       <button
         type="submit"
-        className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md bg-blue-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-500 transition-colors"
+        className="absolute right-2.5 top-1/2 -translate-y-1/2 inline-flex items-center rounded-[5px] bg-[#2563EB] font-semibold text-white hover:bg-[#1D4ED8] transition-all"
+        style={{ padding: '4px 12px', fontSize: 12 }}
       >
         Query
       </button>
