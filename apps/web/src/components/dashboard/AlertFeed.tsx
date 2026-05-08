@@ -37,8 +37,8 @@ export default function AlertFeed() {
         ) : alerts.length === 0 ? (
           <p className="py-8 text-center text-sm text-[#6B7280]">No active alerts</p>
         ) : (
-          <div className="space-y-2">
-            {alerts.slice(0, 5).map((alert) => (
+          <div className="space-y-2 overflow-y-auto" style={{ maxHeight: 420 }}>
+            {alerts.slice(0, 20).map((alert) => (
               <div key={alert.id} className="flex items-start gap-2.5 rounded-[6px] border border-[#F3F4F6] bg-white" style={{ padding: '10px 12px' }}>
                 <span className={`mt-1 h-2 w-2 flex-shrink-0 rounded-full ${dotColors[alert.severity] ?? dotColors.low}`} />
                 <div className="flex-1 min-w-0">
