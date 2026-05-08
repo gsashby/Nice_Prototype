@@ -14,7 +14,7 @@ export default function AuditLogPage() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5" style={{ paddingLeft: 24 }}>
       <PageHeader
         title="Audit Log Explorer"
         actions={

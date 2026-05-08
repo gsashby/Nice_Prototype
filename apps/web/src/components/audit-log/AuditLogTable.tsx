@@ -1,4 +1,5 @@
 'use client';
+import { useEffect } from 'react';
 import { useAuditLog } from '@/hooks/useAuditLog';
 import { format } from 'date-fns';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
@@ -36,7 +37,9 @@ export default function AuditLogTable({ filters, onPageChange, onTotalChange }: 
   const total = data?.total ?? 0;
   const totalPages = Math.ceil(total / filters.pageSize);
 
-  if (onTotalChange && total > 0) onTotalChange(total);
+  useEffect(() => {
+    if (onTotalChange && total > 0) onTotalChange(total);
+  }, [total, onTotalChange]);
 
   if (isError) {
     return (
@@ -61,7 +64,7 @@ export default function AuditLogTable({ filters, onPageChange, onTotalChange }: 
           <table className="w-full border-collapse">
             <thead>
               <tr className="border-b-2 border-[#E5E7EB] bg-[#F9FAFB] text-left">
-                <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Event ID</th>
+                <th className="pl-4 pr-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Event ID</th>
                 <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Timestamp</th>
                 <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Module</th>
                 <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Model Version</th>
@@ -74,7 +77,7 @@ export default function AuditLogTable({ filters, onPageChange, onTotalChange }: 
             <tbody>
               {events.map((event) => (
                 <tr key={event.id} className="border-b border-[#F3F4F6] hover:bg-[#F9FAFB] cursor-pointer transition-colors">
-                  <td className="px-3.5 py-2.5 font-mono text-[11px] text-[#6B7280]">
+                  <td className="pl-4 pr-3.5 py-2.5 font-mono text-[11px] text-[#6B7280]">
                     {event.id.slice(0, 8).toUpperCase()}
                   </td>
                   <td className="px-3.5 py-2.5 font-mono text-[11px] text-[#6B7280] whitespace-nowrap">
