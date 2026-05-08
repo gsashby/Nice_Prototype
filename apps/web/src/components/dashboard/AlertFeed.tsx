@@ -1,7 +1,9 @@
 'use client';
-import { useAlerts } from '@/hooks/useAlerts';
+import { useState } from 'react';
+import { useAlerts, type LiveAlert } from '@/hooks/useAlerts';
 import { formatDistanceToNow } from 'date-fns';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
+import InvestigateDrawer from './InvestigateDrawer';
 
 const dotColors = {
   critical: 'bg-[#EF4444]',
@@ -13,6 +15,7 @@ const dotColors = {
 export default function AlertFeed() {
   const { data, isLoading } = useAlerts();
   const alerts = data?.alerts ?? [];
+  const [selected, setSelected] = useState<LiveAlert | null>(null);
 
   return (
     <div className="rounded-lg border border-[#E5E7EB] bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,.06)]">
@@ -39,7 +42,10 @@ export default function AlertFeed() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2">
                   <div className="text-[12.5px] font-semibold text-[#111827] leading-tight">{alert.title}</div>
-                  <button className="flex-shrink-0 rounded-[5px] border border-[#D1D5DB] bg-white px-2 py-0.5 text-[11px] font-semibold text-[#374151] hover:bg-[#F9FAFB] transition-colors whitespace-nowrap">
+                  <button
+                    onClick={() => setSelected(alert)}
+                    className="flex-shrink-0 rounded-[5px] border border-[#D1D5DB] bg-white px-2 py-0.5 text-[11px] font-semibold text-[#374151] hover:bg-[#F9FAFB] transition-colors whitespace-nowrap"
+                  >
                     Investigate
                   </button>
                 </div>
@@ -52,6 +58,8 @@ export default function AlertFeed() {
           ))}
         </div>
       )}
+
+      <InvestigateDrawer alert={selected} onClose={() => setSelected(null)} />
     </div>
   );
 }
