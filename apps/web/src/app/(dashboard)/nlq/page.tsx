@@ -8,11 +8,18 @@ import { parseNlq } from '@/lib/parseNlq';
 import type { NlqResult } from '@/lib/parseNlq';
 
 export default function NlqPage() {
+  const [query, setQuery] = useState('');
   const [result, setResult] = useState<NlqResult | null>(null);
 
   function handleQuery(q: string) {
     if (!q.trim()) return;
+    setQuery(q);
     setResult(parseNlq(q));
+  }
+
+  function handleClear() {
+    setQuery('');
+    setResult(null);
   }
 
   return (
@@ -21,9 +28,9 @@ export default function NlqPage() {
         title="Natural Language Query"
         description="Ask questions about your governance data in plain English"
       />
-      <NlqInput onQuery={handleQuery} />
+      <NlqInput query={query} onQueryChange={setQuery} onQuery={handleQuery} />
       {!result && <NlqSuggestions onQuery={handleQuery} />}
-      <NlqResultTable result={result} onClear={() => setResult(null)} />
+      <NlqResultTable result={result} onClear={handleClear} />
     </div>
   );
 }
