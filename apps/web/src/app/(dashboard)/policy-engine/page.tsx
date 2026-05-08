@@ -15,7 +15,8 @@ export default function PolicyEnginePage() {
         actions={
           <button
             onClick={() => setShowBuilder((v) => !v)}
-            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 transition-colors"
+            className={`inline-flex items-center rounded-[5px] font-semibold transition-all whitespace-nowrap ${showBuilder ? 'border border-[#D1D5DB] bg-white text-[#374151] hover:bg-[#F9FAFB]' : 'bg-[#2563EB] text-white hover:bg-[#1D4ED8]'}`}
+            style={{ padding: '4px 10px', fontSize: 12 }}
           >
             {showBuilder ? 'Cancel' : '+ New Policy'}
           </button>

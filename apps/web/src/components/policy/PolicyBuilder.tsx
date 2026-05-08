@@ -2,6 +2,9 @@
 import { useState } from 'react';
 import { useCreatePolicy } from '@/hooks/usePolicies';
 
+const inputStyle = "w-full rounded-[5px] border border-[#D1D5DB] bg-white px-3 py-2 text-[12.5px] text-[#1F2937] placeholder-[#9CA3AF] focus:border-[#2563EB] focus:outline-none";
+const labelStyle = "block text-[11px] font-semibold uppercase tracking-[.05em] text-[#6B7280] mb-1";
+
 type Props = { onCreated: () => void };
 
 export default function PolicyBuilder({ onCreated }: Props) {
@@ -19,51 +22,66 @@ export default function PolicyBuilder({ onCreated }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-lg border border-gray-700 bg-gray-900 p-6 space-y-4">
-      <h2 className="text-base font-semibold text-white">New Policy</h2>
+    <form onSubmit={handleSubmit} className="overflow-hidden rounded-lg border border-[#E5E7EB] bg-white shadow-[0_1px_3px_rgba(0,0,0,.06)]">
+      <div style={{ padding: '16px 16px 14px', borderBottom: '1px solid #E5E7EB' }}>
+        <div className="text-[13.5px] font-bold text-[#111827]">New Policy</div>
+        <div className="text-[11.5px] text-[#9CA3AF]">Define a new governance rule</div>
+      </div>
 
-      {isError && (
-        <p className="text-sm text-red-400">{(error as Error).message}</p>
-      )}
+      <div className="space-y-4" style={{ padding: '16px' }}>
+        {isError && (
+          <p className="rounded-[5px] border border-red-300 bg-red-50 px-3 py-2 text-[12px] text-red-600">
+            {(error as Error).message}
+          </p>
+        )}
 
-      <div>
-        <label className="block text-xs text-gray-400 mb-1">Name *</label>
-        <input
-          required
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none"
-        />
+        <div>
+          <label className={labelStyle}>Name *</label>
+          <input
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="e.g. Block PII in responses"
+            className={inputStyle}
+          />
+        </div>
+
+        <div>
+          <label className={labelStyle}>Description</label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={2}
+            placeholder="Describe what this policy enforces…"
+            className={inputStyle}
+          />
+        </div>
+
+        <div>
+          <label className={labelStyle}>Severity</label>
+          <select
+            value={severity}
+            onChange={(e) => setSeverity(e.target.value)}
+            className="rounded-[5px] border border-[#D1D5DB] bg-white px-3 py-2 text-[12.5px] text-[#1F2937] focus:border-[#2563EB] focus:outline-none"
+          >
+            <option value="critical">Critical</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
+
+        <div className="flex gap-2 pt-1">
+          <button
+            type="submit"
+            disabled={isPending}
+            className="inline-flex items-center rounded-[5px] bg-[#2563EB] font-semibold text-white hover:bg-[#1D4ED8] transition-all disabled:opacity-60"
+            style={{ padding: '4px 10px', fontSize: 12 }}
+          >
+            {isPending ? 'Creating…' : 'Create Policy'}
+          </button>
+        </div>
       </div>
-      <div>
-        <label className="block text-xs text-gray-400 mb-1">Description</label>
-        <textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          rows={2}
-          className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none"
-        />
-      </div>
-      <div>
-        <label className="block text-xs text-gray-400 mb-1">Severity</label>
-        <select
-          value={severity}
-          onChange={(e) => setSeverity(e.target.value)}
-          className="rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none"
-        >
-          <option value="critical">Critical</option>
-          <option value="high">High</option>
-          <option value="medium">Medium</option>
-          <option value="low">Low</option>
-        </select>
-      </div>
-      <button
-        type="submit"
-        disabled={isPending}
-        className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 transition-colors disabled:opacity-60"
-      >
-        {isPending ? 'Creating…' : 'Create Policy'}
-      </button>
     </form>
   );
 }
