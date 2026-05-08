@@ -27,7 +27,7 @@ export default function KpiCard({
   return (
     <div className="overflow-hidden rounded-lg border border-[#E5E7EB] bg-white shadow-[0_1px_3px_rgba(0,0,0,.06)] min-w-0">
       <div style={{ height: 4, background: accentGradient }} />
-      <div className="p-4">
+      <div style={{ padding: '16px 18px' }}>
         <div className="mb-2.5 flex items-start justify-between">
           <div className="text-[11px] font-bold uppercase tracking-[.06em] text-[#6B7280]">{title}</div>
           <div

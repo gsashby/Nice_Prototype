@@ -14,7 +14,7 @@ type Props = {
 export default function GovernanceScoreChart({ trend, isLoading }: Props) {
   return (
     <div className="rounded-lg border border-[#E5E7EB] bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,.06)]">
-      <div className="mb-1">
+      <div style={{ marginBottom: 14 }}>
         <div className="text-[13.5px] font-bold text-[#111827]">AI Decision Volume</div>
         <div className="text-[11.5px] text-[#9CA3AF]">Governance score — 6 week trend</div>
       </div>

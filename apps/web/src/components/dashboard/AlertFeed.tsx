@@ -34,7 +34,7 @@ export default function AlertFeed() {
       ) : (
         <div className="space-y-2">
           {alerts.slice(0, 5).map((alert) => (
-            <div key={alert.id} className="flex items-start gap-2.5 rounded-[6px] border border-[#F3F4F6] bg-white p-2.5">
+            <div key={alert.id} className="flex items-start gap-2.5 rounded-[6px] border border-[#F3F4F6] bg-white" style={{ padding: '10px 12px' }}>
               <span className={`mt-1 h-2 w-2 flex-shrink-0 rounded-full ${dotColors[alert.severity] ?? dotColors.low}`} />
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2">
