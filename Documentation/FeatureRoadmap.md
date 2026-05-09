@@ -30,6 +30,7 @@ Current state as of May 2026. Covers what is built, what is scaffolded but incom
 | Model Registry — detail drawer | `/model-registry` | Governance score gauge with health label; metric cards for avg confidence, total inferences, violations, and bias score; bias health callout; model detail rows (type, version, registered, last updated) |
 | Model Registry — register model | `/model-registry` | 4-field inline form (name, version, type, initial status); POSTs to `POST /api/v1/models` with graceful fallback if endpoint not yet implemented |
 | Audit log model filter | `/audit-log` | `model_id` param wired end-to-end: `useAuditLog` passes it to the API; page reads `?model_id=` from the URL on load; deep-link from Model Registry detail drawer |
+| Sidebar collapse | All pages | Toggle button at bottom of sidebar; width transitions from 216px to 52px; labels, badges, and section headers fade out; icons remain centred; `title` tooltips on hover when collapsed; state persisted in `useUiStore` |
 | Data Flow Visualizer | `/data-flow` | Animated SVG pipeline diagram with node selection and governance KPIs |
 | Natural Language Query | `/nlq` | Keyword parser maps plain English to audit log filters |
 | NLQ result drill-down | `/nlq` | Clickable rows open full `AuditLogDrawer` |
@@ -42,7 +43,6 @@ Current state as of May 2026. Covers what is built, what is scaffolded but incom
 | Feature | Location | What's missing |
 |---|---|---|
 | WebSocket live updates | `hooks/useWebSocket.ts`, `lib/websocket-client.ts` | Server-side WebSocket emitter not built; Redis pub-sub not connected |
-| Sidebar collapse | `stores/ui-store.ts` (`sidebarCollapsed`) | Toggle button not rendered; sidebar width is fixed |
 | Active view tracking | `stores/ui-store.ts` (`activeView`) | Not consumed by any component |
 | NLQ AI backend | `hooks/useNlq.ts` | Points to `localhost:8001` which does not exist; hook is unused |
 | Regulations filter | `AuditLogFilters` dropdown | Dropdown renders but value is not passed to the API |
