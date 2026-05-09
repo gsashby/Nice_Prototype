@@ -1,6 +1,8 @@
 'use client';
 import { usePolicies, useTogglePolicy } from '@/hooks/usePolicies';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
+import SortTh from '@/components/shared/SortTh';
+import { useSortable } from '@/lib/useSortable';
 
 const severityStyles: Record<string, string> = {
   critical: 'bg-[#FEE2E2] text-[#DC2626]',
@@ -9,10 +11,13 @@ const severityStyles: Record<string, string> = {
   low:      'bg-[#DBEAFE] text-[#1D4ED8]',
 };
 
+type Policy = { id: string; name: string; description: string; severity: string; enabled: boolean; violationCount: number };
+
 export default function PolicyList() {
   const { data, isLoading, isError } = usePolicies();
   const { mutate: toggle, isPending: isToggling } = useTogglePolicy();
-  const policies = data ?? [];
+  const policies: Policy[] = data ?? [];
+  const { sorted, sort, toggle: sortToggle } = useSortable<Policy>(policies);
 
   if (isError) {
     return (
@@ -31,24 +36,22 @@ export default function PolicyList() {
 
       {isLoading ? (
         <div className="space-y-px p-4">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <LoadingSkeleton key={i} className="h-10" />
-          ))}
+          {Array.from({ length: 5 }).map((_, i) => <LoadingSkeleton key={i} className="h-10" />)}
         </div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full border-collapse">
             <thead>
               <tr className="border-b-2 border-[#E5E7EB] bg-[#F9FAFB] text-left">
-                <th className="pl-4 pr-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Policy Name</th>
+                <SortTh label="Policy Name"    colKey="name"           sort={sort} onToggle={sortToggle} className="pl-4 pr-3.5" />
                 <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Description</th>
-                <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Severity</th>
-                <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Status</th>
-                <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Violations (7d)</th>
+                <SortTh label="Severity"       colKey="severity"       sort={sort} onToggle={sortToggle} className="px-3.5" />
+                <SortTh label="Status"         colKey="enabled"        sort={sort} onToggle={sortToggle} className="px-3.5" />
+                <SortTh label="Violations (7d)" colKey="violationCount" sort={sort} onToggle={sortToggle} className="px-3.5" />
               </tr>
             </thead>
             <tbody>
-              {policies.map((policy) => (
+              {sorted.map((policy) => (
                 <tr key={policy.id} className="border-b border-[#F3F4F6] hover:bg-[#F9FAFB] transition-colors">
                   <td className="pl-4 pr-3.5 py-2.5 text-[12.5px] font-semibold text-[#111827]">{policy.name}</td>
                   <td className="px-3.5 py-2.5 text-[12px] text-[#6B7280]">{policy.description}</td>

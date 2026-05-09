@@ -1,11 +1,13 @@
 'use client';
 import { useModelHealth } from '@/hooks/useModelHealth';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
+import SortTh from '@/components/shared/SortTh';
+import { useSortable } from '@/lib/useSortable';
 
 const moduleStyles: Record<string, string> = {
-  autopilot:  'bg-[#EDE9FE] text-[#6D28D9]',
-  copilot:    'bg-[#DBEAFE] text-[#1D4ED8]',
-  mpower:     'bg-[#CCFBF1] text-[#0F766E]',
+  autopilot: 'bg-[#EDE9FE] text-[#6D28D9]',
+  copilot:   'bg-[#DBEAFE] text-[#1D4ED8]',
+  mpower:    'bg-[#CCFBF1] text-[#0F766E]',
 };
 
 function moduleColor(name: string) {
@@ -21,9 +23,12 @@ function statusBadge(score: number) {
   return { cls: 'bg-[#FEE2E2] text-[#DC2626]', label: 'Critical' };
 }
 
+type Model = { id: string; name: string; type: string; confidence_avg: number; governance_score: number };
+
 export default function ModelHealthTable() {
   const { data, isLoading } = useModelHealth();
-  const models = data?.models ?? [];
+  const models: Model[] = data?.models ?? [];
+  const { sorted, sort, toggle } = useSortable<Model>(models);
 
   return (
     <div className="overflow-hidden rounded-lg border border-[#E5E7EB] bg-white shadow-[0_1px_3px_rgba(0,0,0,.06)]">
@@ -41,16 +46,16 @@ export default function ModelHealthTable() {
           <table className="w-full border-collapse">
             <thead>
               <tr className="border-b-2 border-[#E5E7EB] bg-[#F9FAFB] text-left">
-                <th className="pl-4 pr-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Module</th>
-                <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Model Version</th>
+                <SortTh label="Module"       colKey="name"             sort={sort} onToggle={toggle} className="pl-4 pr-3.5" />
+                <SortTh label="Model Version" colKey="type"            sort={sort} onToggle={toggle} className="px-3.5" />
                 <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Coverage</th>
-                <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Avg Conf.</th>
-                <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Gov. Score</th>
+                <SortTh label="Avg Conf."    colKey="confidence_avg"   sort={sort} onToggle={toggle} className="px-3.5" />
+                <SortTh label="Gov. Score"   colKey="governance_score" sort={sort} onToggle={toggle} className="px-3.5" />
                 <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Status</th>
               </tr>
             </thead>
             <tbody>
-              {models.map((m) => {
+              {sorted.map((m) => {
                 const status = statusBadge(m.governance_score);
                 return (
                   <tr key={m.id} className="border-b border-[#F3F4F6] hover:bg-[#F9FAFB] transition-colors">
@@ -61,7 +66,7 @@ export default function ModelHealthTable() {
                     </td>
                     <td className="px-3.5 py-2.5 font-mono text-[11.5px] text-[#374151]">{m.type}</td>
                     <td className="px-3.5 py-2.5 text-[12.5px] font-bold text-[#16A34A]">100%</td>
-                    <td className="px-3.5 py-2.5 text-[12.5px] text-[#374151]">{(m.confidence_avg).toFixed(2)}</td>
+                    <td className="px-3.5 py-2.5 text-[12.5px] text-[#374151]">{m.confidence_avg.toFixed(2)}</td>
                     <td className="px-3.5 py-2.5 text-[12.5px] text-[#374151]">{m.governance_score.toFixed(1)}%</td>
                     <td className="px-3.5 py-2.5">
                       <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${status.cls}`}>

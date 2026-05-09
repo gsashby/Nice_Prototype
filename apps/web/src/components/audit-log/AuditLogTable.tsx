@@ -4,6 +4,8 @@ import { useAuditLog } from '@/hooks/useAuditLog';
 import { format } from 'date-fns';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
 import AuditLogDrawer from '@/components/audit-log/AuditLogDrawer';
+import SortTh from '@/components/shared/SortTh';
+import { useSortable } from '@/lib/useSortable';
 import type { AuditEvent, AuditLogFilters } from '@/types/audit';
 
 type Props = {
@@ -39,6 +41,8 @@ export default function AuditLogTable({ filters, onPageChange, onTotalChange }: 
   const total = data?.total ?? 0;
   const totalPages = Math.ceil(total / filters.pageSize);
 
+  const { sorted, sort, toggle } = useSortable<AuditEvent>(events);
+
   useEffect(() => {
     if (onTotalChange && total > 0) onTotalChange(total);
   }, [total, onTotalChange]);
@@ -66,35 +70,28 @@ export default function AuditLogTable({ filters, onPageChange, onTotalChange }: 
           <table className="w-full border-collapse">
             <thead>
               <tr className="border-b-2 border-[#E5E7EB] bg-[#F9FAFB] text-left">
-                <th className="pl-4 pr-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Event ID</th>
-                <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Timestamp</th>
-                <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Module</th>
-                <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Model Version</th>
-                <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Session / Agent</th>
-                <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Confidence</th>
-                <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Action</th>
+                <SortTh label="Event ID"    colKey="id"               sort={sort} onToggle={toggle} className="pl-4 pr-3.5" />
+                <SortTh label="Timestamp"   colKey="event_time"       sort={sort} onToggle={toggle} className="px-3.5" />
+                <SortTh label="Module"      colKey="event_type"       sort={sort} onToggle={toggle} className="px-3.5" />
+                <SortTh label="Model Version" colKey="model_name"     sort={sort} onToggle={toggle} className="px-3.5" />
+                <SortTh label="Session / Agent" colKey="session_id"   sort={sort} onToggle={toggle} className="px-3.5" />
+                <SortTh label="Confidence"  colKey="confidence_score" sort={sort} onToggle={toggle} className="px-3.5" />
+                <SortTh label="Action"      colKey="outcome"          sort={sort} onToggle={toggle} className="px-3.5" />
                 <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Regulations</th>
                 <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280]"></th>
               </tr>
             </thead>
             <tbody>
-              {events.map((event) => (
-                <tr
-                  key={event.id}
-                  className="border-b border-[#F3F4F6] hover:bg-[#F9FAFB] transition-colors"
-                >
+              {sorted.map((event) => (
+                <tr key={event.id} className="border-b border-[#F3F4F6] hover:bg-[#F9FAFB] transition-colors">
                   <td className="pl-4 pr-3.5 py-2.5 font-mono text-[11px] text-[#6B7280]">
                     {event.id.slice(0, 8).toUpperCase()}
                   </td>
                   <td className="px-3.5 py-2.5 font-mono text-[11px] text-[#6B7280] whitespace-nowrap">
                     {format(new Date(event.event_time), 'yyyy-MM-dd HH:mm:ss')}
                   </td>
-                  <td className="px-3.5 py-2.5 text-[12.5px] text-[#374151]">
-                    {event.event_type}
-                  </td>
-                  <td className="px-3.5 py-2.5 font-mono text-[11.5px] text-[#374151]">
-                    {event.model_name || '—'}
-                  </td>
+                  <td className="px-3.5 py-2.5 text-[12.5px] text-[#374151]">{event.event_type}</td>
+                  <td className="px-3.5 py-2.5 font-mono text-[11.5px] text-[#374151]">{event.model_name || '—'}</td>
                   <td className="px-3.5 py-2.5 text-[11.5px] text-[#374151]">
                     <div className="font-mono text-[10.5px]">{event.session_id?.slice(0, 12) ?? '—'}</div>
                     <div className="text-[10.5px] text-[#9CA3AF]">{event.agent_id?.slice(0, 8) ?? ''}</div>

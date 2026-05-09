@@ -4,6 +4,8 @@ import { format } from 'date-fns';
 import { useAuditLog } from '@/hooks/useAuditLog';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
 import AuditLogDrawer from '@/components/audit-log/AuditLogDrawer';
+import SortTh from '@/components/shared/SortTh';
+import { useSortable } from '@/lib/useSortable';
 import type { AuditEvent } from '@/types/audit';
 import type { NlqResult } from '@/lib/parseNlq';
 
@@ -36,10 +38,11 @@ export default function NlqResultTable({ result, onClear }: Props) {
   );
   const [selected, setSelected] = useState<AuditEvent | null>(null);
 
-  if (!result) return <EmptyState />;
-
   const events = data?.events ?? [];
   const total = data?.total ?? 0;
+  const { sorted, sort, toggle } = useSortable<AuditEvent>(events);
+
+  if (!result) return <EmptyState />;
 
   return (
     <>
@@ -86,17 +89,17 @@ export default function NlqResultTable({ result, onClear }: Props) {
             <table className="w-full border-collapse">
               <thead>
                 <tr className="border-b-2 border-[#E5E7EB] bg-[#F9FAFB] text-left">
-                  <th className="pl-4 pr-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Event ID</th>
-                  <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Timestamp</th>
-                  <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Module</th>
-                  <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Model</th>
-                  <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Confidence</th>
-                  <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Outcome</th>
+                  <SortTh label="Event ID"    colKey="id"               sort={sort} onToggle={toggle} className="pl-4 pr-3.5" />
+                  <SortTh label="Timestamp"   colKey="event_time"       sort={sort} onToggle={toggle} className="px-3.5" />
+                  <SortTh label="Module"      colKey="event_type"       sort={sort} onToggle={toggle} className="px-3.5" />
+                  <SortTh label="Model"       colKey="model_name"       sort={sort} onToggle={toggle} className="px-3.5" />
+                  <SortTh label="Confidence"  colKey="confidence_score" sort={sort} onToggle={toggle} className="px-3.5" />
+                  <SortTh label="Outcome"     colKey="outcome"          sort={sort} onToggle={toggle} className="px-3.5" />
                   <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Policy Violations</th>
                 </tr>
               </thead>
               <tbody>
-                {events.map((event) => (
+                {sorted.map((event) => (
                   <tr
                     key={event.id}
                     onClick={() => setSelected(event)}
