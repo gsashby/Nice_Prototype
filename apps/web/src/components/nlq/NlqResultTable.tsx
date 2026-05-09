@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { format } from 'date-fns';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
 import { useAuditLog } from '@/hooks/useAuditLog';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
 import AuditLogDrawer from '@/components/audit-log/AuditLogDrawer';
@@ -67,6 +67,12 @@ export default function NlqResultTable({ result, onClear, collapsed, onToggleCol
               )}
             </div>
             <div className="flex flex-wrap items-center gap-1.5 justify-end">
+              {result.source === 'ai' && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-[#F5F3FF] px-2 py-0.5 text-[11px] font-semibold text-[#7C3AED]">
+                  <Sparkles className="h-2.5 w-2.5" />
+                  AI
+                </span>
+              )}
               {result.tags.map((tag) => (
                 <span key={tag} className="inline-flex items-center rounded-full bg-[#EFF6FF] px-2 py-0.5 text-[11px] font-semibold text-[#2563EB]">
                   {tag}

@@ -108,9 +108,13 @@ Clicking any row opens `AuditLogDrawer` — full event detail with session timel
 
 ---
 
-## Query parsing
+## Query interpretation — hybrid approach
 
-Function: `parseNlq(query)` in `lib/parseNlq.ts` — pure, synchronous, no network call.
+NLQ uses a two-stage hybrid: a synchronous regex parser runs first; Claude is only called when the regex fails to find any structured filters.
+
+### Stage 1 — Regex parser (`lib/parseNlq.ts`)
+
+Pure function, no network call, responds in <1 ms. Returns `source: 'regex'`.
 
 Maps plain English to an `AuditLogFilters` object using regex matching (first-match-wins per category):
 
@@ -131,11 +135,38 @@ Maps plain English to an `AuditLogFilters` object using regex matching (first-ma
 
 **Known limitation:** Multiple keywords from the same category in one query only apply the first match.
 
+### Stage 2 — AI fallback (`POST /api/nlq` → Claude Sonnet 4.6)
+
+Triggered only when the regex produced nothing but the raw search fallback (i.e. `tags = ['search: "..."]'`). Returns `source: 'ai'`.
+
+The route calls Claude with tool use (`tool_choice: { type: 'tool', name: 'set_filters' }`), forcing a structured JSON response every time. Claude receives:
+- The full set of valid outcomes and event types
+- Today's date
+- Instructions to apply multiple filters simultaneously and to only set fields clearly implied by the query
+
+If the AI call fails for any reason (network error, API key missing, rate limit), `NlqPanel` silently falls back to the regex result so the feature never breaks entirely.
+
+#### What AI unlocks vs. regex alone
+
+| Query | Regex result | AI result |
+|---|---|---|
+| `"risky events this week"` | `search: "risky events this week"` | `outcome: blocked, period: last 7 days` |
+| `"blocked inference events yesterday"` | `outcome: blocked` (drops type + time) | `outcome: blocked, type: inference, period: yesterday` |
+| `"dangerous decisions last month"` | `search: "dangerous decisions last month"` | `outcome: blocked, period: last 30 days` |
+| `"show me all blocked events"` | `outcome: blocked` ✓ fast path, no AI call | — |
+
+### Source badge
+
+When results are shown, a small badge in the "Query Results" header indicates how the query was interpreted:
+- **✨ AI** (purple) — Claude interpreted the query
+- No badge — regex matched directly (fast path)
+
 ---
 
 ## Data dependencies
 
 | Hook / function | API endpoint | Used by |
 |---|---|---|
-| `parseNlq(query)` | None — pure function | `NlqPanel`, on form submit |
+| `parseNlq(query)` | None — pure function | `NlqPanel`, fast path |
+| `POST /api/nlq` | Next.js route → Claude Sonnet 4.6 | `NlqPanel`, AI fallback path |
 | `useAuditLog(result.filters)` | `GET /api/v1/audit-log` | `NlqResultTable` |

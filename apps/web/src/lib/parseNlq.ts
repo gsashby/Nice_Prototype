@@ -4,6 +4,7 @@ import { subDays, startOfDay, endOfDay, format } from 'date-fns';
 export type NlqResult = {
   filters: AuditLogFilters;
   tags: string[];
+  source: 'regex' | 'ai';
 };
 
 export function parseNlq(query: string): NlqResult {
@@ -61,5 +62,5 @@ export function parseNlq(query: string): NlqResult {
     tags.push(`search: "${query.trim()}"`);
   }
 
-  return { filters, tags };
+  return { filters, tags, source: 'regex' as const };
 }

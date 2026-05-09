@@ -6,16 +6,47 @@ import NlqResultTable from '@/components/nlq/NlqResultTable';
 import { parseNlq } from '@/lib/parseNlq';
 import type { NlqResult } from '@/lib/parseNlq';
 
+function isRegexFallback(result: NlqResult) {
+  return result.tags.length === 1 && result.tags[0].startsWith('search: "');
+}
+
 export default function NlqPanel() {
   const [query, setQuery] = useState('');
   const [result, setResult] = useState<NlqResult | null>(null);
   const [resultsCollapsed, setResultsCollapsed] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
 
-  function handleQuery(q: string) {
+  async function handleQuery(q: string) {
     if (!q.trim()) return;
     setQuery(q);
-    setResult(parseNlq(q));
     setResultsCollapsed(false);
+
+    const parsed = parseNlq(q);
+
+    // Fast path: regex found structured filters — use immediately, no network call
+    if (!isRegexFallback(parsed)) {
+      setResult(parsed);
+      return;
+    }
+
+    // Slow path: regex only produced a raw search term — ask Claude to interpret
+    setResult(null);
+    setAiLoading(true);
+    try {
+      const res = await fetch('/api/nlq', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: q }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? 'AI query failed');
+      setResult({ filters: json.filters, tags: json.tags, source: 'ai' });
+    } catch {
+      // Graceful fallback: use the regex search result if AI fails
+      setResult(parsed);
+    } finally {
+      setAiLoading(false);
+    }
   }
 
   function handleClear() {
@@ -32,14 +63,14 @@ export default function NlqPanel() {
           <div className="text-[11.5px] text-[#9CA3AF]">Ask questions about your governance data in plain English</div>
         </div>
         <div style={{ padding: '14px 16px' }}>
-          <NlqInput query={query} onQueryChange={setQuery} onQuery={handleQuery} />
+          <NlqInput query={query} onQueryChange={setQuery} onQuery={handleQuery} loading={aiLoading} />
           <div className="mt-3">
             <NlqSuggestions onQuery={handleQuery} />
           </div>
         </div>
       </div>
 
-      {/* Results — appears only after a query; collapsible via header */}
+      {/* Results — appears after a query; collapsible via header */}
       {result && (
         <NlqResultTable
           result={result}

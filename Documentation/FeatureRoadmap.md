@@ -34,6 +34,7 @@ Current state as of May 2026. Covers what is built, what is scaffolded but incom
 | Board Report button | `/` | "Board Report" button in Governance Dashboard header navigates to `/board-reports` |
 | Data Flow Visualizer | `/data-flow` | Animated SVG pipeline diagram with node selection and governance KPIs |
 | Natural Language Query | `/` | Embedded at top of Governance Dashboard; always-visible input + suggested query chips; results card appears after submit and is collapsible; row drill-down opens `AuditLogDrawer` |
+| NLQ hybrid AI interpretation | `/` | Regex fast path (<1 ms) for known keywords; Claude Sonnet 4.6 fallback via `POST /api/nlq` when regex finds no structure; supports multi-condition queries and synonyms; graceful regex fallback on AI failure; ✨ AI badge shown in results header |
 
 ---
 
@@ -43,7 +44,6 @@ Current state as of May 2026. Covers what is built, what is scaffolded but incom
 |---|---|---|
 | WebSocket live updates | `hooks/useWebSocket.ts`, `lib/websocket-client.ts` | Server-side WebSocket emitter not built; Redis pub-sub not connected |
 | Active view tracking | `stores/ui-store.ts` (`activeView`) | Not consumed by any component |
-| NLQ AI backend | `hooks/useNlq.ts` | Points to `localhost:8001` which does not exist; hook is unused |
 | Regulations filter | `AuditLogFilters` dropdown | Dropdown renders but value is not passed to the API |
 | Time period filter | Governance Dashboard dropdown | Renders but does not filter any data |
 | Export button (Dashboard) | Governance Dashboard header | Renders but has no handler |
@@ -77,9 +77,6 @@ Currently there is no auth layer. All requests use the seed tenant ID. See `Docu
 
 **AI Agent Monitor**  
 Per-agent confidence score trends, override rates, and recommendation history. Would require either a dedicated `agents` table or aggregating `agent_id` groupings from `audit_events`.
-
-**NLQ upgrade to real AI**  
-Replace the regex keyword parser (`parseNlq.ts`) with a call to Claude that converts natural language to a structured `AuditLogFilters` object. The `useNlq.ts` hook scaffolds the mutation; the missing piece is a Next.js route handler that calls Claude and returns filters.
 
 ### Lower priority
 
