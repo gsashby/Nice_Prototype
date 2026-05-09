@@ -11,13 +11,15 @@
 │  │  React 19 · Tailwind CSS v4 · TanStack Query · Zustand       │   │
 │  │                                                              │   │
 │  │  (dashboard) pages                                           │   │
-│  │    Governance · Audit Log · Policy Engine · NLQ · etc.       │   │
+│  │    Governance · Audit Log · Policy Engine · Board Reports    │   │
+│  │    Model Registry · Incident Timeline · Data Flow · etc.     │   │
 │  │                                                              │   │
 │  │  Next.js route handlers  (server-side — key never leaves)    │   │
 │  │    POST /api/summarize          ───────────────────────────────────► Anthropic
 │  │    POST /api/explain-event      ───────────────────────────────────► Claude API
 │  │    POST /api/report-summaries   ───────────────────────────────────► Claude API
 │  │    POST /api/report-addition    ───────────────────────────────────► Claude API
+│  │    POST /api/nlq                ───────────────────────────────────► Claude API
 │  └──────────────────────────────────────────────────────────────┘   │
 │           │  fetch (NEXT_PUBLIC_API_URL)                             │
 └───────────┼─────────────────────────────────────────────────────────┘
@@ -154,6 +156,8 @@ ai-trust-center/
 | WebSocket live updates | Scaffolded (`useWebSocket.ts`) but not connected |
 | Board Report Builder | Wired — 2-step wizard, live data aggregation, Claude AI summaries, SHA-256 audit certificate |
 | Model Registry | Wired — searchable model catalogue, governance scores, detail drawer, register form |
+| Incident Timeline | Wired — vertical chronological log of blocked/flagged events, severity derivation, date grouping, Load More pagination, AuditLogDrawer integration |
 | Data Flow Visualizer | Wired — animated SVG pipeline diagram, node detail, live KPIs, recent events feed |
+| NLQ hybrid AI | Wired — regex fast path + Claude Sonnet 4.6 fallback via `POST /api/nlq` using tool use for structured output |
 | Agent Monitor | Placeholder page — not built |
 | Authentication / RBAC | Not implemented — all requests use the seed tenant ID |

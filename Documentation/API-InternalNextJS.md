@@ -33,6 +33,9 @@ Used by:
 - `AuditLogTable` (Audit Log Explorer)
 - `NlqResultTable` (NLQ results)
 - `AuditLogDrawer` (session timeline — filters by `search: session_id`)
+- `IncidentTimeline` (Incident Timeline — filters by `outcome: blocked` or `flagged`)
+- `SummaryKpis` in `incidents/page.tsx` (two calls at `pageSize: 1` to get blocked/flagged totals)
+- `AlertDrawer` mini-list (filters by `outcome` matching severity)
 
 ```ts
 const { data, isLoading, isError } = useAuditLog(filters);
@@ -220,6 +223,20 @@ Used by: Board Report Builder (Step 2, on mount)
 **Input:** `{ reportContext }` — full report data (title, period, governance score, counts, models, policies, alerts)  
 **Output:** `{ summaries: { executive, compliance, performance, risk } }` — four plain-prose section summaries  
 Returns 500 JSON on Claude error; silently skipped by the UI.
+
+### `POST /api/nlq`
+
+**File:** `apps/web/src/app/api/nlq/route.ts`  
+Used by: `NlqPanel` — AI fallback path when the regex parser finds no structured filters  
+**Model:** `claude-sonnet-4-6`, 256 max tokens  
+**Input:** `{ query: string }`  
+**Output:** `{ filters: AuditLogFilters, tags: string[], source: 'ai' }`
+
+Uses Claude tool use with `tool_choice: { type: 'tool', name: 'set_filters' }` — this forces a structured JSON response every time, eliminating hallucinated field names. The tool schema matches `AuditLogFilters` exactly (outcome enum, eventType enum, startDate, endDate, search). Today's date is injected into the prompt so Claude can resolve relative time references ("yesterday", "last week") to ISO 8601 strings.
+
+Only called when `parseNlq()` returns nothing but the raw `search:` fallback — the regex fast path handles all recognisable keywords without any network call.
+
+---
 
 ### `POST /api/report-addition`
 
