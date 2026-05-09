@@ -1,5 +1,5 @@
 'use client';
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { Sparkles } from 'lucide-react';
 import type { ReportConfig } from './ReportConfig';
@@ -70,6 +70,30 @@ function KpiBox({ label, value, sub, colour = '#111827' }: { label: string; valu
 
 type Addition = { id: string; request: string; content: string };
 
+type Summaries = { executive: string; compliance: string; performance: string; risk: string };
+
+function SectionSummary({ text, loading }: { text?: string; loading: boolean }) {
+  if (loading) {
+    return (
+      <div style={{ marginTop: 12, padding: '10px 14px', background: '#F5F3FF', borderRadius: 6, border: '1px solid #DDD6FE' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+          <span style={{ width: 12, height: 12, borderRadius: '50%', border: '2px solid #C4B5FD', borderTopColor: '#7C3AED', display: 'inline-block', animation: 'spin 0.7s linear infinite', flexShrink: 0 }} />
+          <span style={{ fontSize: 11.5, color: '#7C3AED', fontStyle: 'italic' }}>Generating AI summary…</span>
+        </div>
+      </div>
+    );
+  }
+  if (!text) return null;
+  return (
+    <div style={{ marginTop: 12, padding: '10px 14px', background: '#F5F3FF', borderRadius: 6, border: '1px solid #DDD6FE', display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}>
+        <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+      </svg>
+      <p style={{ margin: 0, fontSize: 12, color: '#4C1D95', lineHeight: 1.7 }}>{text}</p>
+    </div>
+  );
+}
+
 export default function ReportPreview({ data, onBack }: Props) {
   const printRef = useRef<HTMLDivElement>(null);
   const { config, metrics, models, alerts, policies, auditStats, certificate } = data;
@@ -79,6 +103,56 @@ export default function ReportPreview({ data, onBack }: Props) {
   const [addLoading, setAddLoading]   = useState(false);
   const [addError, setAddError]       = useState<string | null>(null);
   const [outOfScope, setOutOfScope]   = useState(false);
+
+  const [summaries, setSummaries]       = useState<Summaries | null>(null);
+  const [summariesLoading, setSummariesLoading] = useState(true);
+
+  useEffect(() => {
+    const blockedPctEarly  = auditStats.total > 0 ? ((auditStats.blocked / auditStats.total) * 100).toFixed(1) : '0.0';
+    const flaggedPctEarly  = auditStats.total > 0 ? ((auditStats.flagged / auditStats.total) * 100).toFixed(1) : '0.0';
+    const allowedPctEarly  = auditStats.total > 0 ? ((auditStats.allowed / auditStats.total) * 100).toFixed(1) : '0.0';
+    const periodLabelEarly = (() => {
+      const s = format(new Date(config.startDate), 'MMM d, yyyy');
+      const e = format(new Date(config.endDate),   'MMM d, yyyy');
+      return `${s} – ${e}`;
+    })();
+
+    fetch('/api/report-summaries', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        reportContext: {
+          title:                config.title,
+          period:               periodLabelEarly,
+          governance_score:     metrics.governance_score,
+          total_decisions:      auditStats.total,
+          blocked:              auditStats.blocked,
+          flagged:              auditStats.flagged,
+          allowed:              auditStats.allowed,
+          blocked_pct:          blockedPctEarly,
+          flagged_pct:          flaggedPctEarly,
+          allowed_pct:          allowedPctEarly,
+          total_policies:       policies.length,
+          enabled_policies:     policies.filter((p) => p.enabled).length,
+          policy_violations_24h: metrics.policy_violations_24h,
+          alert_count:          alerts.length,
+          critical_alerts:      alerts.filter((a) => a.severity === 'critical').length,
+          regulations:          config.regulations,
+          models_monitored:     metrics.models_monitored,
+          models:               models.filter((m) => m.status === 'active').map((m) => ({
+            name: m.name, governance_score: m.governance_score, confidence_avg: m.confidence_avg, total_inferences: m.total_inferences,
+          })),
+          policies:             policies.map((p) => ({ name: p.name, severity: p.severity, enabled: p.enabled, violationCount: p.violationCount })),
+          alerts:               alerts.slice(0, 10).map((a) => ({ severity: a.severity, title: a.title })),
+        },
+      }),
+    })
+      .then((r) => r.json())
+      .then((json) => { if (json.summaries) setSummaries(json.summaries); })
+      .catch(() => { /* summaries are additive — silently skip on error */ })
+      .finally(() => setSummariesLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function handleAddition(e: React.FormEvent) {
     e.preventDefault();
@@ -159,6 +233,7 @@ export default function ReportPreview({ data, onBack }: Props) {
 
   return (
     <div>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       {/* Toolbar — hidden on print */}
       <div className="print:hidden flex items-center justify-between mb-5">
         <button
@@ -310,6 +385,7 @@ export default function ReportPreview({ data, onBack }: Props) {
                 Compliance coverage across all applicable regulations ({config.regulations.join(', ')}) remains at <strong style={{ color: '#15803D' }}>100%</strong>.
               </p>
             </div>
+            <SectionSummary text={summaries?.executive} loading={summariesLoading} />
           </Section>
 
           {/* 2. Policy Compliance */}
@@ -347,6 +423,7 @@ export default function ReportPreview({ data, onBack }: Props) {
             <p style={{ marginTop: 10, fontSize: 11.5, color: '#6B7280', margin: '10px 0 0' }}>
               {enabledPolicies} of {policies.length} policies active. Policy rules are enforced across all AI modules in real time.
             </p>
+            <SectionSummary text={summaries?.compliance} loading={summariesLoading} />
           </Section>
 
           {/* 3. Model Performance */}
@@ -379,6 +456,7 @@ export default function ReportPreview({ data, onBack }: Props) {
                 })}
               </tbody>
             </table>
+            <SectionSummary text={summaries?.performance} loading={summariesLoading} />
           </Section>
 
           {/* 4. Risk & Alert Summary */}
@@ -419,6 +497,7 @@ export default function ReportPreview({ data, onBack }: Props) {
                 ✓ No active alerts during the reporting period
               </p>
             )}
+            <SectionSummary text={summaries?.risk} loading={summariesLoading} />
           </Section>
 
           {/* 5. Audit Certificate */}
