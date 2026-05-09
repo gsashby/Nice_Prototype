@@ -26,9 +26,10 @@ Current state as of May 2026. Covers what is built, what is scaffolded but incom
 | Board Report — AI assistant | `/board-reports` | Free-text prompt adds custom governed content to the report; topic guard rejects off-scope requests |
 | Board Report — audit certificate | `/board-reports` | SHA-256 hash of report payload, certificate ID, 1-year validity |
 | Board Report — print to PDF | `/board-reports` | Browser print dialog via `window.print()` with print-media CSS |
-| Model Registry | `/model-registry` | Searchable, sortable model catalogue with governance score badges |
-| Model Registry — detail drawer | `/model-registry` | Full model detail with deep-link to audit log filtered by model |
-| Model Registry — register model | `/model-registry` | Inline form creates model via `POST /api/v1/models` |
+| Model Registry | `/model-registry` | Searchable, sortable model table (name, type, version, status, gov score bar, avg confidence, inferences, violations); filter bar for type and status; 5 summary KPI cards (total, active, avg gov score, critical, inferences 7d) |
+| Model Registry — detail drawer | `/model-registry` | Governance score gauge with health label; metric cards for avg confidence, total inferences, violations, and bias score; bias health callout; model detail rows (type, version, registered, last updated) |
+| Model Registry — register model | `/model-registry` | 4-field inline form (name, version, type, initial status); POSTs to `POST /api/v1/models` with graceful fallback if endpoint not yet implemented |
+| Audit log model filter | `/audit-log` | `model_id` param wired end-to-end: `useAuditLog` passes it to the API; page reads `?model_id=` from the URL on load; deep-link from Model Registry detail drawer |
 | Data Flow Visualizer | `/data-flow` | Animated SVG pipeline diagram with node selection and governance KPIs |
 | Natural Language Query | `/nlq` | Keyword parser maps plain English to audit log filters |
 | NLQ result drill-down | `/nlq` | Clickable rows open full `AuditLogDrawer` |

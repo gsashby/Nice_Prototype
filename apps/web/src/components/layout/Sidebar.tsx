@@ -53,13 +53,13 @@ const sections: Section[] = [
   {
     label: 'Administration',
     items: [
-      { href: '/data-flow', label: 'Data Flow Visualizer', icon: Database, disabled: true },
+      { href: '/data-flow', label: 'Data Flow Visualizer', icon: Database },
     ],
   },
   {
     label: 'Models & Incidents',
     items: [
-      { href: '/model-registry', label: 'Model Registry', icon: Package, disabled: true },
+      { href: '/model-registry', label: 'Model Registry', icon: Package },
       { href: '/incidents', label: 'Incident Timeline', icon: Clock, disabled: true, badge: 2 },
       { href: '/access-controls', label: 'Access Controls', icon: Lock, disabled: true },
     ],

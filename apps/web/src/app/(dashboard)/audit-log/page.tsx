@@ -1,5 +1,6 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import PageHeader from '@/components/shared/PageHeader';
 import AuditLogFilters from '@/components/audit-log/AuditLogFilters';
 import AuditLogTable from '@/components/audit-log/AuditLogTable';
@@ -8,10 +9,20 @@ import { exportCSV, exportJSON, buildSiemPayload } from '@/lib/exportAuditLog';
 import { apiGet } from '@/lib/api-client';
 import type { AuditLogFilters as Filters, AuditEvent } from '@/types/audit';
 
-export default function AuditLogPage() {
-  const [filters, setFilters] = useState<Filters>({ page: 1, pageSize: 50 });
-  const [total, setTotal] = useState<number | undefined>();
+function AuditLogContent() {
+  const searchParams = useSearchParams();
+  const [filters, setFilters] = useState<Filters>({
+    page: 1,
+    pageSize: 50,
+    modelId: searchParams.get('model_id') ?? undefined,
+  });
 
+  useEffect(() => {
+    const modelId = searchParams.get('model_id');
+    if (modelId) setFilters((prev) => ({ ...prev, modelId, page: 1 }));
+  }, [searchParams]);
+
+  const [total, setTotal] = useState<number | undefined>();
   const [csvLoading, setCsvLoading]   = useState(false);
   const [jsonLoading, setJsonLoading] = useState(false);
   const [siemOpen, setSiemOpen]       = useState(false);
@@ -120,5 +131,13 @@ export default function AuditLogPage() {
         eventCount={siemCount}
       />
     </div>
+  );
+}
+
+export default function AuditLogPage() {
+  return (
+    <Suspense>
+      <AuditLogContent />
+    </Suspense>
   );
 }
