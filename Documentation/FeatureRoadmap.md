@@ -11,15 +11,25 @@ Current state as of May 2026. Covers what is built, what is scaffolded but incom
 | Governance Dashboard | `/` | KPI cards, 6-week trend chart, alert feed, module health table |
 | Alert investigation drawer | `/` | Right-side drawer with severity callout, related audit events, Acknowledge/Escalate/Dismiss |
 | Summarize with AI | `/` | Claude Sonnet 4.6 executive summary of live dashboard data |
-| Audit Log Explorer | `/audit-log` | Filterable, paginated, sortable event table |
+| Audit Log Explorer | `/audit-log` | Filterable, paginated, sortable event table; deep-link from Model Registry |
 | Audit event detail drawer | `/audit-log` | Full event detail, session timeline, policy violations |
 | Explain with AI (causal analysis) | `/audit-log` | Claude Sonnet 4.6 explanation of a specific event + session context |
-| Audit log export — CSV | `/audit-log` | Downloads up to 5000 filtered events |
-| Audit log export — JSON | `/audit-log` | Downloads with metadata envelope |
+| Audit log export — CSV (filtered) | `/audit-log` | Downloads up to 5000 filtered events |
+| Audit log export — JSON (filtered) | `/audit-log` | Downloads with metadata envelope |
+| Audit log export — single event CSV | `/audit-log` | Export Event button in detail drawer downloads one-row CSV |
 | SIEM Push preview | `/audit-log` | CEF format modal, simulated push confirmation |
 | Policy Engine — list | `/policy-engine` | Sortable table of all policies with violation counts |
 | Policy Engine — toggle | `/policy-engine` | Enable/disable individual policies via API |
 | Policy Engine — create | `/policy-engine` | Form to create new policies with name, description, severity |
+| Board Report Builder | `/board-reports` | 2-step wizard: configure period/scope → preview report with AI summaries |
+| Board Report — AI section summaries | `/board-reports` | Claude auto-generates executive, compliance, performance, and risk prose on Step 2 load |
+| Board Report — AI assistant | `/board-reports` | Free-text prompt adds custom governed content to the report; topic guard rejects off-scope requests |
+| Board Report — audit certificate | `/board-reports` | SHA-256 hash of report payload, certificate ID, 1-year validity |
+| Board Report — print to PDF | `/board-reports` | Browser print dialog via `window.print()` with print-media CSS |
+| Model Registry | `/model-registry` | Searchable, sortable model catalogue with governance score badges |
+| Model Registry — detail drawer | `/model-registry` | Full model detail with deep-link to audit log filtered by model |
+| Model Registry — register model | `/model-registry` | Inline form creates model via `POST /api/v1/models` |
+| Data Flow Visualizer | `/data-flow` | Animated SVG pipeline diagram with node selection and governance KPIs |
 | Natural Language Query | `/nlq` | Keyword parser maps plain English to audit log filters |
 | NLQ result drill-down | `/nlq` | Clickable rows open full `AuditLogDrawer` |
 | NLQ suggested queries | `/nlq` | Five hardcoded suggestion chips |
@@ -38,7 +48,6 @@ Current state as of May 2026. Covers what is built, what is scaffolded but incom
 | Time period filter | Governance Dashboard dropdown | Renders but does not filter any data |
 | Export button (Dashboard) | Governance Dashboard header | Renders but has no handler |
 | Board Report button (Dashboard) | Governance Dashboard header | Renders but has no navigation handler |
-| Export Event button | `AuditLogDrawer` footer | Renders but has no handler |
 
 ---
 
@@ -46,10 +55,7 @@ Current state as of May 2026. Covers what is built, what is scaffolded but incom
 
 | Page | Route | What needs to be built |
 |---|---|---|
-| Board Report Builder | `/board-reports` | Report wizard, data aggregation, PDF generation, audit certificate |
 | AI Agent Monitor | `/ai-agents` | Per-agent metrics, confidence trends, override rates, recommendation history |
-| Data Flow Visualizer | `/data-flow` | Visual diagram of AI decision flow through the system (disabled in nav) |
-| Model Registry | `/model-registry` | Full CRUD for AI model registrations (disabled in nav) |
 | Incident Timeline | `/incidents` | Chronological incident log with severity tracking (disabled in nav) |
 | Access Controls | `/access-controls` | RBAC management — users, roles, permissions (disabled in nav) |
 
@@ -69,9 +75,6 @@ Policies currently exist only as stored configuration — they are not evaluated
 Currently there is no auth layer. All requests use the seed tenant ID. See `Documentation/Security.md` for the full gap analysis.
 
 ### Medium priority
-
-**Board Report Builder**  
-Step-by-step wizard to generate a PDF compliance report covering a selected period, with a cryptographic audit certificate (hash of report content + signing timestamp).
 
 **AI Agent Monitor**  
 Per-agent confidence score trends, override rates, and recommendation history. Would require either a dedicated `agents` table or aggregating `agent_id` groupings from `audit_events`.
@@ -104,3 +107,5 @@ The `useUiStore` already has `sidebarCollapsed` and `toggleSidebar`. The sidebar
 | SIEM push is simulated | No real syslog/SIEM endpoint — the push confirmation is UI-only |
 | Alert acknowledgement is in-memory | Refreshing the page resets acknowledged state |
 | Policy rules not evaluated | `rule_config` is stored but never executed against events |
+| Board Report PDF via browser print | No server-side PDF generation — layout is browser-dependent |
+| Model Registry POST endpoint | `POST /api/v1/models` may not be implemented in the Go API; the mutation will fail until the handler exists |

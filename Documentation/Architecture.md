@@ -14,8 +14,10 @@
 │  │    Governance · Audit Log · Policy Engine · NLQ · etc.       │   │
 │  │                                                              │   │
 │  │  Next.js route handlers  (server-side — key never leaves)    │   │
-│  │    POST /api/summarize       ──────────────────────────────────────► Anthropic
-│  │    POST /api/explain-event   ──────────────────────────────────────► Claude API
+│  │    POST /api/summarize          ───────────────────────────────────► Anthropic
+│  │    POST /api/explain-event      ───────────────────────────────────► Claude API
+│  │    POST /api/report-summaries   ───────────────────────────────────► Claude API
+│  │    POST /api/report-addition    ───────────────────────────────────► Claude API
 │  └──────────────────────────────────────────────────────────────┘   │
 │           │  fetch (NEXT_PUBLIC_API_URL)                             │
 └───────────┼─────────────────────────────────────────────────────────┘
@@ -150,6 +152,8 @@ ai-trust-center/
 | Redis | Running but not used — reserved for WebSocket pub-sub |
 | ClickHouse | Running but not used — reserved for analytics-scale queries |
 | WebSocket live updates | Scaffolded (`useWebSocket.ts`) but not connected |
-| Board Report Builder | Placeholder page — not built |
+| Board Report Builder | Wired — 2-step wizard, live data aggregation, Claude AI summaries, SHA-256 audit certificate |
+| Model Registry | Wired — searchable model catalogue, governance scores, detail drawer, register form |
+| Data Flow Visualizer | Wired — animated SVG pipeline diagram, node detail, live KPIs, recent events feed |
 | Agent Monitor | Placeholder page — not built |
 | Authentication / RBAC | Not implemented — all requests use the seed tenant ID |
