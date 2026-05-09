@@ -35,6 +35,7 @@ Current state as of May 2026. Covers what is built, what is scaffolded but incom
 | Data Flow Visualizer | `/data-flow` | Animated SVG pipeline diagram with node selection and governance KPIs |
 | Natural Language Query | `/` | Embedded at top of Governance Dashboard; always-visible input + suggested query chips; results card appears after submit and is collapsible; row drill-down opens `AuditLogDrawer` |
 | NLQ hybrid AI interpretation | `/` | Regex fast path (<1 ms) for known keywords; Claude Sonnet 4.6 fallback via `POST /api/nlq` when regex finds no structure; supports multi-condition queries and synonyms; graceful regex fallback on AI failure; ✨ AI badge shown in results header |
+| Incident Timeline | `/incidents` | Chronological vertical timeline of blocked and flagged AI events; date-grouped with "Today"/"Yesterday" labels; severity-coded dots (critical/high/medium/low); incident cards show model, confidence, policy violations; Blocked/Flagged tabs; 4 KPI summary cards; Load More pagination; row click opens `AuditLogDrawer` |
 
 ---
 
@@ -55,7 +56,6 @@ Current state as of May 2026. Covers what is built, what is scaffolded but incom
 | Page | Route | What needs to be built |
 |---|---|---|
 | AI Agent Monitor | `/ai-agents` | Per-agent metrics, confidence trends, override rates, recommendation history |
-| Incident Timeline | `/incidents` | Chronological incident log with severity tracking (disabled in nav) |
 | Access Controls | `/access-controls` | RBAC management — users, roles, permissions (disabled in nav) |
 
 ---

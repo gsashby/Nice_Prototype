@@ -61,7 +61,7 @@ const sections: Section[] = [
     label: 'Models & Incidents',
     items: [
       { href: '/model-registry', label: 'Model Registry', icon: Package },
-      { href: '/incidents', label: 'Incident Timeline', icon: Clock, disabled: true, badge: 2 },
+      { href: '/incidents', label: 'Incident Timeline', icon: Clock, badge: 2 },
       { href: '/access-controls', label: 'Access Controls', icon: Lock, disabled: true },
     ],
   },
