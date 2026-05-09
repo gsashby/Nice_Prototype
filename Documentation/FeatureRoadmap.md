@@ -31,6 +31,7 @@ Current state as of May 2026. Covers what is built, what is scaffolded but incom
 | Model Registry — register model | `/model-registry` | 4-field inline form (name, version, type, initial status); POSTs to `POST /api/v1/models` with graceful fallback if endpoint not yet implemented |
 | Audit log model filter | `/audit-log` | `model_id` param wired end-to-end: `useAuditLog` passes it to the API; page reads `?model_id=` from the URL on load; deep-link from Model Registry detail drawer |
 | Sidebar collapse | All pages | Toggle button at bottom of sidebar; width transitions from 216px to 52px; labels, badges, and section headers fade out; icons remain centred; `title` tooltips on hover when collapsed; state persisted in `useUiStore` |
+| Board Report button | `/` | "Board Report" button in Governance Dashboard header navigates to `/board-reports` |
 | Data Flow Visualizer | `/data-flow` | Animated SVG pipeline diagram with node selection and governance KPIs |
 | Natural Language Query | `/nlq` | Keyword parser maps plain English to audit log filters |
 | NLQ result drill-down | `/nlq` | Clickable rows open full `AuditLogDrawer` |
@@ -48,7 +49,6 @@ Current state as of May 2026. Covers what is built, what is scaffolded but incom
 | Regulations filter | `AuditLogFilters` dropdown | Dropdown renders but value is not passed to the API |
 | Time period filter | Governance Dashboard dropdown | Renders but does not filter any data |
 | Export button (Dashboard) | Governance Dashboard header | Renders but has no handler |
-| Board Report button (Dashboard) | Governance Dashboard header | Renders but has no navigation handler |
 
 ---
 
