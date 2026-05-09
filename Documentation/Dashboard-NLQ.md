@@ -1,9 +1,9 @@
 # Natural Language Query
 
-**Route:** `/nlq`  
-**File:** `apps/web/src/app/(dashboard)/nlq/page.tsx`
+**Location:** Embedded at the top of the Governance Dashboard (`/`)  
+**Component:** `apps/web/src/components/nlq/NlqPanel.tsx`
 
-The Natural Language Query page allows users to ask plain-English questions about audit data and see the matching events in a sortable, drillable table. See `Documentation/NLQ.md` for a deep dive into the query parsing logic.
+The NLQ panel allows users to ask plain-English questions about audit data without leaving the Governance Dashboard. The standalone `/nlq` route has been removed — the full feature now lives in `NlqPanel`.
 
 ---
 
@@ -11,31 +11,49 @@ The Natural Language Query page allows users to ask plain-English questions abou
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ Page Header — "Natural Language Query"                       │
+│ Natural Language Query                                        │
+│ "Ask questions about your governance data in plain English"  │
 ├─────────────────────────────────────────────────────────────┤
-│ NlqInput — search box + Query button                         │
+│ [🔍 Ask anything about your governance data…       Query ]  │
 ├─────────────────────────────────────────────────────────────┤
-│ NlqSuggestions — suggested query chips (hidden after query)  │
+│ Suggested Queries                                            │
+│ [Show me all blocked events] [Show flagged violations…] …   │
+└─────────────────────────────────────────────────────────────┘
+
+After a query is submitted:
+
+┌─────────────────────────────────────────────────────────────┐
+│ Query Results  [outcome: blocked] [period: last 7 days]  ▲  │
 ├─────────────────────────────────────────────────────────────┤
-│ NlqResultTable — sortable event table + interpreted tags     │
+│  Sortable event table (collapses when header is clicked)     │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Query Input
+## Components
 
-Component: `NlqInput`
+### `NlqPanel`
 
-A full-width text input with a search icon on the left and a blue **Query** button on the right. Submits on form submit (Enter key or button click). The input value is controlled by the parent page so it can be cleared when the user hits Clear.
+Top-level panel component. Owns all NLQ state:
 
----
+| State | Type | Description |
+|---|---|---|
+| `query` | `string` | Current input value |
+| `result` | `NlqResult \| null` | Parsed filters + tags; `null` before first query or after Clear |
+| `resultsCollapsed` | `boolean` | Whether the results card body is hidden; resets to `false` on each new query |
 
-## Suggested Queries
+Renders:
+1. A white card with header, `NlqInput`, and `NlqSuggestions` — always visible
+2. `NlqResultTable` (with collapse props) — appears only when `result !== null`
 
-Component: `NlqSuggestions`
+### `NlqInput`
 
-Shown only when no query has been run yet (i.e. `result === null`). Displays five hardcoded suggestion chips:
+Full-width text input with a search icon and blue **Query** button. Submits on Enter or button click.
+
+### `NlqSuggestions`
+
+Five hardcoded suggestion chips. Clicking one runs the query immediately:
 
 - Show me all blocked events
 - Show flagged policy violations this week
@@ -43,60 +61,75 @@ Shown only when no query has been run yet (i.e. `result === null`). Displays fiv
 - Show bias scan events last 30 days
 - Show allowed events today
 
-Clicking a chip runs the query immediately (same as typing and submitting).
+### `NlqResultTable`
 
----
-
-## Result Table
-
-Component: `NlqResultTable`  
 Data source: `useAuditLog(result.filters)` → `GET /api/v1/audit-log`
 
-### Header
+Accepts two additional props for embedded use:
 
-Shows:
+| Prop | Type | Effect |
+|---|---|---|
+| `collapsed` | `boolean` | Hides the table body; header remains visible |
+| `onToggleCollapsed` | `() => void` | Clicking the header row toggles collapse; chevron icon indicates state |
+
+#### Header
+
 - "Query Results" title
-- Total matched event count: `"N events matched — click any row for full detail"`
-- Interpreted-as tags (blue pills) — e.g. `outcome: blocked`, `period: last 7 days` — showing what was parsed from the query
-- **Clear** button — resets the result and clears the input field
+- Event count (hidden when collapsed)
+- Interpreted-as tags (blue pills): e.g. `outcome: blocked`, `period: last 7 days`
+- **Clear** button — resets result and clears input (stopPropagation prevents accidental collapse toggle)
+- Chevron icon (▲ expanded / ▼ collapsed)
 
-### Table columns
+#### Table columns
 
-All columns are sortable via `useSortable` (client-side sort of the current page).
+All sortable client-side via `useSortable`:
 
-| Column | Field | Notes |
+| Column | Field | Format |
 |---|---|---|
 | Event ID | `id` | First 8 chars, uppercased, monospace |
-| Timestamp | `event_time` | `yyyy-MM-dd HH:mm:ss` format |
+| Timestamp | `event_time` | `yyyy-MM-dd HH:mm:ss` |
 | Module | `event_type` | Plain text |
 | Model | `model_name` | Monospace |
-| Confidence | `confidence_score` | Shown as `XX.X%` |
+| Confidence | `confidence_score` | `XX.X%` |
 | Outcome | `outcome` | Colour-coded badge |
 | Policy Violations | `policy_violations` | Blue pills; `—` if none |
 
-### Row drill-down
+#### Row drill-down
 
-Clicking any row opens the `AuditLogDrawer` — the full event detail panel including session timeline and Explain with AI. Same drawer used in the Audit Log Explorer.
+Clicking any row opens `AuditLogDrawer` — full event detail with session timeline and Explain with AI.
 
-### Empty and error states
+#### States
 
-- Loading: 6 `LoadingSkeleton` rows of height 40px
-- No matches: `"No events matched your query"`
-- API error: `"Failed to load results — is the API running?"`
-- No query yet: `EmptyState` component — `"Run a query above to see results"`
+| State | Display |
+|---|---|
+| Loading | 6 skeleton rows |
+| No matches | `"No events matched your query"` |
+| API error | `"Failed to load results — is the API running?"` |
 
 ---
 
-## Page state
+## Query parsing
 
-The page holds two pieces of state:
+Function: `parseNlq(query)` in `lib/parseNlq.ts` — pure, synchronous, no network call.
 
-| State | Type | Description |
+Maps plain English to an `AuditLogFilters` object using regex matching (first-match-wins per category):
+
+| Category | Keywords detected | Filter set |
 |---|---|---|
-| `query` | `string` | The current input value — passed down to `NlqInput` so Clear can reset it |
-| `result` | `NlqResult \| null` | The parsed filter set + tags — passed to `NlqResultTable`; `null` before first query or after Clear |
+| Outcome | `blocked` | `outcome: blocked` |
+| Outcome | `flagged`, `violation`, `policy` | `outcome: flagged` |
+| Outcome | `allowed`, `approved` | `outcome: allowed` |
+| Event type | `inference` | `eventType: inference` |
+| Event type | `policy check` | `eventType: policy_check` |
+| Event type | `bias` | `eventType: bias_scan` |
+| Event type | `session` | `eventType: session_start` |
+| Event type | `model load` | `eventType: model_load` |
+| Time | `today`, `last 24 hours` | `startDate`/`endDate` = today |
+| Time | `last 7 days`, `this week`, `week` | `startDate` = 7 days ago |
+| Time | `last 30 days`, `this month`, `month` | `startDate` = 30 days ago |
+| Fallback | (no keywords matched) | `search: <raw query>` |
 
-Submitting a new query calls `parseNlq(query)` synchronously (no network call) and sets `result`, which causes `NlqResultTable` to fetch from the API with the derived filters.
+**Known limitation:** Multiple keywords from the same category in one query only apply the first match.
 
 ---
 
@@ -104,5 +137,5 @@ Submitting a new query calls `parseNlq(query)` synchronously (no network call) a
 
 | Hook / function | API endpoint | Used by |
 |---|---|---|
-| `parseNlq(query)` | None — pure function | Page, on form submit |
-| `useAuditLog(result.filters)` | `GET /api/v1/audit-log` | Result table |
+| `parseNlq(query)` | None — pure function | `NlqPanel`, on form submit |
+| `useAuditLog(result.filters)` | `GET /api/v1/audit-log` | `NlqResultTable` |

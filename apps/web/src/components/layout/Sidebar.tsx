@@ -6,7 +6,6 @@ import {
   ScrollText,
   ShieldCheck,
   FileBarChart2,
-  MessageSquareCode,
   Bot,
   Database,
   Package,
@@ -44,7 +43,6 @@ const sections: Section[] = [
     label: 'Reports & Queries',
     items: [
       { href: '/board-reports', label: 'Board Report Builder', icon: FileBarChart2 },
-      { href: '/nlq', label: 'Natural Language Query', icon: MessageSquareCode },
     ],
   },
   {

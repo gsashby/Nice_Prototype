@@ -33,9 +33,7 @@ Current state as of May 2026. Covers what is built, what is scaffolded but incom
 | Sidebar collapse | All pages | Toggle button at bottom of sidebar; width transitions from 216px to 52px; labels, badges, and section headers fade out; icons remain centred; `title` tooltips on hover when collapsed; state persisted in `useUiStore` |
 | Board Report button | `/` | "Board Report" button in Governance Dashboard header navigates to `/board-reports` |
 | Data Flow Visualizer | `/data-flow` | Animated SVG pipeline diagram with node selection and governance KPIs |
-| Natural Language Query | `/nlq` | Keyword parser maps plain English to audit log filters |
-| NLQ result drill-down | `/nlq` | Clickable rows open full `AuditLogDrawer` |
-| NLQ suggested queries | `/nlq` | Five hardcoded suggestion chips |
+| Natural Language Query | `/` | Embedded at top of Governance Dashboard; always-visible input + suggested query chips; results card appears after submit and is collapsible; row drill-down opens `AuditLogDrawer` |
 
 ---
 
@@ -90,9 +88,6 @@ ClickHouse is running (`aitc_clickhouse`) but nothing writes to it. For analytic
 
 **Regulations filter**  
 Wire the existing "All Regulations" dropdown in the audit log filter bar to the API. Would require adding a `regulation` column or tag to `audit_events`, or mapping policy violation names to regulation labels.
-
-**Sidebar collapse**  
-The `useUiStore` already has `sidebarCollapsed` and `toggleSidebar`. The sidebar needs a collapse toggle button and responsive width handling.
 
 ---
 

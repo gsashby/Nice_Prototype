@@ -11,6 +11,9 @@ The Governance Dashboard is the landing page of the AI Trust Center. It gives a 
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
+│ NLQ Panel — search input + suggested query chips             │
+│  └─ Query Results (appears on submit, collapsible)           │
+├─────────────────────────────────────────────────────────────┤
 │ Page Header — title + action buttons                         │
 ├──────────────┬──────────────┬──────────────┬────────────────┤
 │ KPI: AI      │ KPI: Avg     │ KPI: Policy  │ KPI: Compliance│
@@ -24,13 +27,23 @@ The Governance Dashboard is the landing page of the AI Trust Center. It gives a 
 
 ---
 
+## Natural Language Query Panel
+
+Component: `NlqPanel` (`components/nlq/NlqPanel.tsx`)
+
+Embedded at the top of the dashboard. Always shows the search input and five suggested query chips. The query results card appears below only after a query is submitted and can be collapsed/expanded by clicking the "Query Results" header. Submitting a new query re-expands results automatically.
+
+See `Documentation/Dashboard-NLQ.md` for full NLQ documentation.
+
+---
+
 ## Header actions
 
 | Button | Colour | Behaviour |
 |---|---|---|
 | Time period dropdown | White/border | UI only — does not yet filter data |
 | Export | White/border | UI only — not wired up |
-| Board Report | Blue `#2563EB` | UI only — navigates to Board Reports page (not yet linked) |
+| Board Report | Blue `#2563EB` | Navigates to `/board-reports` |
 | Summarize with AI | Purple `#7C3AED` | Opens `SummaryModal`, calls `POST /api/summarize` via Claude |
 
 ---
@@ -140,4 +153,4 @@ See `Documentation/API-AnthropicClaude.md` for the full prompt and token details
 | `useGovernanceMetrics` | `GET /api/v1/governance/metrics` | KPI cards, chart, Summarize with AI payload |
 | `useAlerts` | `GET /api/v1/governance/alerts` | Alert feed, Summarize with AI payload |
 | `useModelHealth` | `GET /api/v1/governance/models` | Module health table, Summarize with AI payload |
-| `useAuditLog` | `GET /api/v1/audit-log` | Alert drawer mini event list |
+| `useAuditLog` | `GET /api/v1/audit-log` | Alert drawer mini event list; NLQ result table |

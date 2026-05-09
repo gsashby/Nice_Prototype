@@ -9,6 +9,7 @@ import ModelHealthTable from '@/components/dashboard/ModelHealthTable';
 import GovernanceScoreChart from '@/components/dashboard/GovernanceScoreChart';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
 import SummaryModal from '@/components/dashboard/SummaryModal';
+import NlqPanel from '@/components/nlq/NlqPanel';
 import { useGovernanceMetrics } from '@/hooks/useGovernanceMetrics';
 import { useAlerts } from '@/hooks/useAlerts';
 import { useModelHealth } from '@/hooks/useModelHealth';
@@ -55,6 +56,8 @@ export default function GovernanceDashboard() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <NlqPanel />
+
       <PageHeader
         title="Governance Dashboard"
         actions={
