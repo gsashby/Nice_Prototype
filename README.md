@@ -8,11 +8,11 @@ A governance and auditability platform for AI systems running inside NICE CXone 
 
 | Feature | Description |
 |---|---|
-| **Governance Dashboard** | KPI cards, AI decision volume chart, active alerts feed, and module health table |
-| **Audit Log Explorer** | Filterable, paginated event log for every AI decision — searchable by session, agent, model, action, and regulation |
-| **Policy Engine** | Create, enable/disable, and manage governance rules that trigger on AI events |
+| **Governance Dashboard** | KPI cards, AI decision volume chart, active alerts feed, module health table, and AI-generated executive summary |
+| **Audit Log Explorer** | Filterable, paginated event log for every AI decision — sortable columns, per-row detail drawer with session timeline and AI causal analysis, CSV/JSON export, and SIEM push (CEF format) |
+| **Policy Engine** | Create, toggle-enable/disable, and manage governance rules that trigger on AI events |
 | **Board Report Builder** | Step-by-step wizard to generate executive compliance reports with cryptographic audit certificate |
-| **Natural Language Query** | Ask plain-English questions against the audit data |
+| **Natural Language Query** | Ask plain-English questions against the audit data — results are drillable with full event detail |
 | **Agent Trust Panel** | Per-agent confidence scores, override rates, and recommendation history |
 
 ---
@@ -42,7 +42,7 @@ ai-trust-center/
 - **State**: Zustand (UI state), TanStack Query v5 (server state)
 - **Charts**: Recharts
 - **Icons**: Lucide React
-- **Components**: Radix UI primitives (Dialog, Tabs, Select, Switch, Toast)
+- **AI**: Anthropic SDK (`@anthropic-ai/sdk`) — server-side Next.js route handlers keep the API key off the client
 
 ```
 src/
@@ -55,18 +55,21 @@ src/
 │   │   ├── board-reports/      # Board Report Builder
 │   │   ├── nlq/                # Natural Language Query
 │   │   └── ai-agents/          # Agent Trust Panel
+│   ├── api/
+│   │   ├── summarize/          # POST → Claude: executive dashboard summary
+│   │   └── explain-event/      # POST → Claude: causal analysis for a single audit event
 │   ├── globals.css
 │   └── layout.tsx
 ├── components/
 │   ├── layout/                 # Sidebar, TopHeader
-│   ├── dashboard/              # KpiCard, AlertFeed, ModelHealthTable, GovernanceScoreChart
-│   ├── audit-log/              # AuditLogFilters, AuditLogTable, AuditLogDrawer
+│   ├── dashboard/              # KpiCard, AlertFeed, AlertDrawer, ModelHealthTable, GovernanceScoreChart, SummaryModal
+│   ├── audit-log/              # AuditLogFilters, AuditLogTable, AuditLogDrawer, SiemModal
 │   ├── policy/                 # PolicyList, PolicyBuilder, PolicyRuleEditor
 │   ├── nlq/                    # NlqInput, NlqResultTable, NlqSuggestions
-│   └── shared/                 # PageHeader, StatusBadge, LoadingSkeleton, QueryProvider
-├── hooks/                      # useAuditLog, useGovernanceMetrics, useModelHealth, useAlerts, usePolicies, useNlq
+│   └── shared/                 # PageHeader, StatusBadge, LoadingSkeleton, SortTh, QueryProvider
+├── hooks/                      # useAuditLog, useGovernanceMetrics, useModelHealth, useAlerts, usePolicies, useNlq, useWebSocket
+├── lib/                        # api-client, exportAuditLog, parseNlq, useSortable, query-client, websocket-client, utils
 ├── stores/                     # ui-store (sidebar), alerts-store (Zustand)
-├── lib/                        # api-client, query-client, websocket-client, utils
 └── types/                      # api.ts, audit.ts, governance.ts, policy.ts
 ```
 
@@ -175,7 +178,33 @@ REDIS_URL=redis://localhost:6379/0
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:8080
+ANTHROPIC_API_KEY=sk-ant-...       # Required for Summarize with AI and Explain with AI features
 ```
+
+---
+
+## AI features
+
+Both AI features call **Claude Sonnet 4.6** via server-side Next.js route handlers so the `ANTHROPIC_API_KEY` never reaches the browser.
+
+| Feature | Where | What Claude receives |
+|---|---|---|
+| **Summarize with AI** | Governance Dashboard header button | Current KPI metrics, active alerts, and model health data |
+| **Explain with AI** | Audit Log event detail drawer | The specific event plus every other event in the same session (causal timeline) |
+
+---
+
+## Audit log export
+
+From the Audit Log Explorer, three export actions are available (all respect the current active filters):
+
+| Action | Format | Delivery |
+|---|---|---|
+| **Export CSV** | Comma-separated, RFC-4180 escaped | Browser download |
+| **Export JSON** | Events array + metadata (exported_at, filters, total) | Browser download |
+| **SIEM Push** | CEF (Common Event Format) preview | Modal with push confirmation; target `siem.internal:514` |
+
+Exports fetch up to 5,000 events in a single request.
 
 ---
 
@@ -197,15 +226,16 @@ NEXT_PUBLIC_API_URL=http://localhost:8080
 
 ## Design
 
-The UI is designed to match the **NICE CXone Mpower** design language:
+The UI matches the **NICE CXone Mpower** design language:
 
 - **Header**: Navy `#0B2D55` with centered CXone Mpower logo
 - **Sidebar**: White, 216px, grouped navigation sections with section labels
 - **Background**: Light gray `#F2F4F7`
 - **Cards**: White with `#E5E7EB` borders and subtle shadow
 - **Primary action**: `#2563EB` (blue)
+- **AI actions**: `#7C3AED` (purple) — Summarize with AI, Explain with AI
 - **Module badges**: Purple (Autopilot), Blue (Copilot), Teal (Mpower Agent)
-- **Status badges**: Green (healthy), Yellow (watch), Red (critical)
+- **Status badges**: Green (healthy/allowed), Yellow (flagged/watch), Red (blocked/critical), Blue (auto-applied)
 
 ---
 
@@ -213,5 +243,7 @@ The UI is designed to match the **NICE CXone Mpower** design language:
 
 | Branch | Description |
 |---|---|
-| `main` | Stable baseline |
-| `audit_trail_new_UI` | Light-theme UI redesign matching the Claude Design handoff |
+| `main` | Current stable build — all features merged |
+| `AI_Audit_Audit_export` | Audit log export feature (merged into main) |
+| `audit_trail_new_UI` | Light-theme UI redesign |
+| `ui-spacing-polish` | Spacing and layout fixes |
