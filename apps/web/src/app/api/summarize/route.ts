@@ -27,7 +27,7 @@ ${body.models?.map((m: { name: string; governance_score: number; confidence_avg:
 Provide a 3–4 sentence executive summary followed by a brief "Key Risks" and "Recommended Actions" section.`;
 
   const message = await client.messages.create({
-    model: 'claude-opus-4-7',
+    model: 'claude-sonnet-4-6',
     max_tokens: 600,
     messages: [{ role: 'user', content: prompt }],
   });

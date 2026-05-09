@@ -35,7 +35,7 @@ ${timeline || 'No other events in this session'}
 Explain: (1) what likely triggered this event and why it was ${event.outcome}, (2) what the session context tells us about the causal chain, and (3) whether this represents a genuine risk or expected behaviour. Be specific about the confidence score and any policy violations.`;
 
   const message = await client.messages.create({
-    model: 'claude-opus-4-7',
+    model: 'claude-sonnet-4-6',
     max_tokens: 500,
     messages: [{ role: 'user', content: prompt }],
   });
