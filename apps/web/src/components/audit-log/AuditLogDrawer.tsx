@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { X, Sparkles } from 'lucide-react';
 import { useAuditLog } from '@/hooks/useAuditLog';
+import { exportSingleEventCSV } from '@/lib/exportAuditLog';
 import type { AuditEvent } from '@/types/audit';
 
 type Props = { event: AuditEvent | null; onClose: () => void };
@@ -287,6 +288,7 @@ export default function AuditLogDrawer({ event, onClose }: Props) {
             Close
           </button>
           <button
+            onClick={() => exportSingleEventCSV(event)}
             className="inline-flex items-center rounded-[5px] bg-[#2563EB] font-semibold text-white hover:bg-[#1D4ED8] transition-all"
             style={{ padding: '5px 12px', fontSize: 12 }}
           >

@@ -84,6 +84,11 @@ export async function exportJSON(filters: AuditLogFilters) {
   return events.length;
 }
 
+export function exportSingleEventCSV(event: AuditEvent) {
+  const rows = [CSV_HEADERS.join(','), eventToRow(event)];
+  triggerDownload(rows.join('\n'), `audit-event-${event.id}-${timestamp()}.csv`, 'text/csv');
+}
+
 export function buildSiemPayload(events: AuditEvent[]): string {
   return events.slice(0, 5).map((e) =>
     `CEF:0|NICE CXone|AI Trust Center|1.0|${e.outcome.toUpperCase()}|${e.event_type}|${e.outcome === 'blocked' ? '8' : e.outcome === 'flagged' ? '5' : '2'}|` +
