@@ -1,6 +1,7 @@
 'use client';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { format } from 'date-fns';
+import { Sparkles } from 'lucide-react';
 import type { ReportConfig } from './ReportConfig';
 import type { Certificate } from '@/lib/reportCertificate';
 import type { GovernanceMetrics } from '@/types/governance';
@@ -67,9 +68,73 @@ function KpiBox({ label, value, sub, colour = '#111827' }: { label: string; valu
   );
 }
 
+type Addition = { id: string; request: string; content: string };
+
 export default function ReportPreview({ data, onBack }: Props) {
   const printRef = useRef<HTMLDivElement>(null);
   const { config, metrics, models, alerts, policies, auditStats, certificate } = data;
+
+  const [additions, setAdditions]     = useState<Addition[]>([]);
+  const [addInput, setAddInput]       = useState('');
+  const [addLoading, setAddLoading]   = useState(false);
+  const [addError, setAddError]       = useState<string | null>(null);
+  const [outOfScope, setOutOfScope]   = useState(false);
+
+  async function handleAddition(e: React.FormEvent) {
+    e.preventDefault();
+    if (!addInput.trim()) return;
+    setAddLoading(true);
+    setAddError(null);
+    setOutOfScope(false);
+
+    try {
+      const res = await fetch('/api/report-addition', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          request: addInput,
+          reportContext: {
+            title:           config.title,
+            period:          periodLabel,
+            governance_score: metrics.governance_score,
+            total_decisions:  auditStats.total,
+            blocked:          auditStats.blocked,
+            flagged:          auditStats.flagged,
+            blocked_pct:      auditStats.total > 0 ? ((auditStats.blocked / auditStats.total) * 100).toFixed(1) : '0.0',
+            flagged_pct:      auditStats.total > 0 ? ((auditStats.flagged / auditStats.total) * 100).toFixed(1) : '0.0',
+            total_policies:   policies.length,
+            enabled_policies: policies.filter((p) => p.enabled).length,
+            alert_count:      alerts.length,
+            critical_alerts:  alerts.filter((a) => a.severity === 'critical').length,
+            regulations:      config.regulations,
+            models:           models.filter((m) => m.status === 'active').map((m) => ({
+              name: m.name, governance_score: m.governance_score,
+            })),
+          },
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? 'Request failed');
+      if (json.outOfScope) {
+        setOutOfScope(true);
+        setAddError(json.reason);
+      } else {
+        setAdditions((prev) => [
+          ...prev,
+          { id: crypto.randomUUID(), request: addInput, content: json.content },
+        ]);
+        setAddInput('');
+      }
+    } catch (err) {
+      setAddError((err as Error).message);
+    } finally {
+      setAddLoading(false);
+    }
+  }
+
+  function removeAddition(id: string) {
+    setAdditions((prev) => prev.filter((a) => a.id !== id));
+  }
 
   const periodLabel = (() => {
     const s = format(new Date(config.startDate), 'MMM d, yyyy');
@@ -121,6 +186,62 @@ export default function ReportPreview({ data, onBack }: Props) {
             <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
             Download PDF
           </button>
+        </div>
+      </div>
+
+      {/* AI Assistant panel — hidden on print */}
+      <div className="print:hidden" style={{ maxWidth: 860, margin: '0 auto 20px', border: '1px solid #DDD6FE', borderRadius: 8, background: '#FAFAFA', overflow: 'hidden' }}>
+        <div style={{ background: '#7C3AED', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Sparkles size={14} color="#fff" />
+          <span style={{ color: '#fff', fontSize: 12.5, fontWeight: 700 }}>AI Report Assistant</span>
+        </div>
+        <div style={{ padding: '14px 16px' }}>
+          <p style={{ margin: '0 0 10px', fontSize: 12.5, color: '#374151', lineHeight: 1.6 }}>
+            Does this report look right? Would you like to add anything? Describe additional content you'd like included — for example, a section on model bias trends, a regulatory commentary, or an analysis of flagged alerts.
+          </p>
+          <form onSubmit={handleAddition} style={{ display: 'flex', gap: 8 }}>
+            <textarea
+              value={addInput}
+              onChange={(e) => { setAddInput(e.target.value); setAddError(null); setOutOfScope(false); }}
+              placeholder="e.g. Add a paragraph on EU AI Act compliance obligations for the next quarter…"
+              rows={2}
+              disabled={addLoading}
+              style={{ flex: 1, resize: 'vertical', borderRadius: 5, border: '1px solid #DDD6FE', padding: '8px 10px', fontSize: 12, color: '#1F2937', outline: 'none', fontFamily: 'inherit', lineHeight: 1.5 }}
+            />
+            <button
+              type="submit"
+              disabled={addLoading || !addInput.trim()}
+              style={{ alignSelf: 'flex-end', display: 'inline-flex', alignItems: 'center', gap: 6, borderRadius: 5, background: '#7C3AED', color: '#fff', fontWeight: 700, fontSize: 12, padding: '7px 14px', border: 'none', cursor: addLoading || !addInput.trim() ? 'not-allowed' : 'pointer', opacity: addLoading || !addInput.trim() ? 0.6 : 1, whiteSpace: 'nowrap' }}
+            >
+              {addLoading ? (
+                <>
+                  <span style={{ width: 13, height: 13, borderRadius: '50%', border: '2px solid rgba(255,255,255,.4)', borderTopColor: '#fff', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} />
+                  Adding…
+                </>
+              ) : (
+                <>
+                  <Sparkles size={12} />
+                  Add to Report
+                </>
+              )}
+            </button>
+          </form>
+
+          {addError && (
+            <div style={{ marginTop: 10, padding: '8px 12px', borderRadius: 5, border: `1px solid ${outOfScope ? '#FDE68A' : '#FECACA'}`, background: outOfScope ? '#FFFBEB' : '#FEF2F2', fontSize: 12, color: outOfScope ? '#92400E' : '#B91C1C', lineHeight: 1.5 }}>
+              {outOfScope ? (
+                <><strong>Out of scope:</strong> {addError} Please ask about AI governance, model performance, policy compliance, alerts, or regulatory topics.</>
+              ) : (
+                <><strong>Error:</strong> {addError}</>
+              )}
+            </div>
+          )}
+
+          {additions.length > 0 && (
+            <p style={{ margin: '10px 0 0', fontSize: 11, color: '#7C3AED', fontWeight: 600 }}>
+              {additions.length} addition{additions.length > 1 ? 's' : ''} added to the report below.
+            </p>
+          )}
         </div>
       </div>
 
@@ -334,6 +455,32 @@ export default function ReportPreview({ data, onBack }: Props) {
               </div>
             </div>
           </Section>
+
+          {/* Additional Notes (AI-generated) */}
+          {additions.length > 0 && (
+            <Section number={6} title="Additional Notes">
+              {additions.map((a, i) => (
+                <div key={a.id} style={{ marginBottom: i < additions.length - 1 ? 16 : 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#7C3AED', textTransform: 'uppercase', letterSpacing: '.05em' }}>
+                      Note {i + 1}: {a.request}
+                    </div>
+                    <button
+                      className="print:hidden"
+                      onClick={() => removeAddition(a.id)}
+                      title="Remove this addition"
+                      style={{ flexShrink: 0, background: 'none', border: '1px solid #E5E7EB', borderRadius: 4, cursor: 'pointer', color: '#9CA3AF', fontSize: 12, padding: '1px 6px', lineHeight: 1.4 }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <p style={{ fontSize: 12.5, color: '#374151', lineHeight: 1.75, margin: 0, whiteSpace: 'pre-wrap' }}>
+                    {a.content}
+                  </p>
+                </div>
+              ))}
+            </Section>
+          )}
 
           {/* Footer */}
           <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
