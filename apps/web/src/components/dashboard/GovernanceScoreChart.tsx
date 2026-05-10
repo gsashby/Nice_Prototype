@@ -9,14 +9,22 @@ type TrendPoint = { date: string; score: number };
 type Props = {
   trend: TrendPoint[];
   isLoading: boolean;
+  days?: number;
 };
 
-export default function GovernanceScoreChart({ trend, isLoading }: Props) {
+const periodLabel: Record<number, string> = {
+  7:  '7-day trend',
+  30: '30-day trend',
+  90: '90-day trend',
+};
+
+export default function GovernanceScoreChart({ trend, isLoading, days = 7 }: Props) {
+  const subtitle = periodLabel[days] ?? `${days}-day trend`;
   return (
     <div className="rounded-lg border border-[#E5E7EB] bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,.06)]">
       <div style={{ marginBottom: 14 }}>
         <div className="text-[13.5px] font-bold text-[#111827]">AI Decision Volume</div>
-        <div className="text-[11.5px] text-[#9CA3AF]">Governance score — 6 week trend</div>
+        <div className="text-[11.5px] text-[#9CA3AF]">Governance score — {subtitle}</div>
       </div>
       {isLoading ? (
         <LoadingSkeleton className="h-[180px] mt-3" />

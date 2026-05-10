@@ -13,8 +13,8 @@ const dotColors = {
   low:      'bg-[#3B82F6]',
 };
 
-export default function AlertFeed() {
-  const { data, isLoading } = useAlerts();
+export default function AlertFeed({ days = 7 }: { days?: number }) {
+  const { data, isLoading } = useAlerts(days);
   const alerts = data?.alerts ?? [];
   const [selected, setSelected] = useState<LiveAlert | null>(null);
 

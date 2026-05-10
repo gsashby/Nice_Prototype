@@ -3,6 +3,7 @@ export type GovernanceMetrics = {
   active_policies: number;
   policy_violations_24h: number;
   models_monitored: number;
+  total_inferences: number;
   trend: ScoreDataPoint[];
 };
 
