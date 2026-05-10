@@ -48,12 +48,13 @@ A searchable, client-side sortable table with the following columns:
 | Name | `name` | Left-aligned; links to detail drawer |
 | Type | `type` | Colour-coded badge: LLM (purple), Classifier (blue), RAG (teal), Regression (amber) |
 | Version | `version` | Mono font |
-| Gov Score | `governance_score` | Percentage with status badge (Healthy ≥ 85 %, Watch ≥ 70 %, Critical < 70 %) |
-| Confidence | `confidence_avg` | Displayed as percentage |
 | Status | `status` | `active` (green) / `inactive` (gray) |
+| Gov Score | `governance_score` | Progress bar + coloured percentage: green ≥ 85 %, amber ≥ 70 %, red < 70 % |
+| Avg Conf. | `confidence_avg` | Displayed as percentage |
 | Inferences | `total_inferences` | Locale-formatted number |
+| Violations | `violation_count` | Health badge (Healthy/Watch/Critical) when > 0; `0` otherwise |
 
-**Search** filters by model name (case-insensitive substring match, client-side).  
+**Search** filters by model name and version (case-insensitive substring match, client-side).  
 **Sort** is client-side via `useSortable` on all columns. Default sort: none.
 
 Clicking any row opens the `ModelDetailDrawer`.
@@ -69,7 +70,7 @@ A right-side slide-in drawer showing full model detail:
 - Bias score
 - Violation count
 - Created / updated timestamps (formatted via `date-fns`)
-- **"View in Audit Log"** button — navigates to `/audit-log?model_id={id}` and pre-filters the audit log to that model's events
+- **"View Audit Events"** button — navigates to `/audit-log?model_id={id}` and pre-filters the audit log to that model's events
 
 The drawer closes on Escape key or clicking the X button.
 
@@ -143,4 +144,4 @@ type RegisterModelRequest = {
 
 ## Audit log deep-link
 
-The detail drawer's **"View in Audit Log"** button uses `useRouter().push('/audit-log?model_id={id}')`. The Audit Log Explorer reads `model_id` from `useSearchParams()` on mount and pre-populates the `modelId` filter, so the audit table immediately shows only events for that model. The `useAuditLog` hook forwards `modelId` as the `model_id` query param to the Go API.
+The detail drawer's **"View Audit Events"** button uses `useRouter().push('/audit-log?model_id={id}')`. The Audit Log Explorer reads `model_id` from `useSearchParams()` on mount and pre-populates the `modelId` filter, so the audit table immediately shows only events for that model. The `useAuditLog` hook forwards `modelId` as the `model_id` query param to the Go API.

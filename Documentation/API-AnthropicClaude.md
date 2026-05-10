@@ -1,6 +1,6 @@
 # Anthropic Claude API
 
-The application uses the **Anthropic Claude API** to power two AI features: executive dashboard summarisation and per-event causal analysis. Both are implemented as server-side Next.js route handlers so the API key never reaches the browser.
+The application uses the **Anthropic Claude API** to power five AI features: executive dashboard summarisation, per-event causal analysis, board report narrative generation, AI report assistant, and NLQ hybrid query interpretation. All are implemented as server-side Next.js route handlers so the API key never reaches the browser.
 
 ---
 
@@ -166,11 +166,107 @@ Anthropic SDK → claude-sonnet-4-6
 
 ---
 
+---
+
+## Route 3 — `POST /api/report-summaries`
+
+**File:** `apps/web/src/app/api/report-summaries/route.ts`
+
+**Triggered by:** Board Report Builder Step 2, automatically on mount.
+
+Generates four independent plain-prose summaries for the report sections. The full report context is sent in a single prompt; Claude returns a JSON object with four keyed sections.
+
+### Claude call
+
+```ts
+client.messages.create({
+  model: 'claude-sonnet-4-6',
+  max_tokens: 800,
+  messages: [{ role: 'user', content: prompt }],
+})
+```
+
+### Response
+
+```json
+{
+  "summaries": {
+    "executive": "...",   // § 1 Executive Summary
+    "compliance": "...", // § 2 Compliance Overview
+    "performance": "...",// § 3 Model Performance
+    "risk": "..."        // § 4 Risk Assessment
+  }
+}
+```
+
+If the call fails, `ReportPreview` silently skips AI summaries — all data sections still render.
+
+---
+
+## Route 4 — `POST /api/report-addition`
+
+**File:** `apps/web/src/app/api/report-addition/route.ts`
+
+**Triggered by:** The AI assistant input field at the bottom of the Board Report preview.
+
+Accepts a free-text user request and the full report context. Includes a **topic guard**: Claude first assesses whether the request is related to AI governance, compliance, model performance, policy enforcement, auditing, or regulatory compliance. Off-topic requests return `outOfScope: true` without generating content.
+
+### Claude call
+
+```ts
+client.messages.create({
+  model: 'claude-sonnet-4-6',
+  max_tokens: 600,
+  messages: [{ role: 'user', content: prompt }],
+})
+```
+
+### Response
+
+```json
+{ "outOfScope": false, "content": "2–3 paragraphs of board-level prose..." }
+// or
+{ "outOfScope": true, "reason": "One sentence explaining why this is out of scope" }
+```
+
+---
+
+## Route 5 — `POST /api/nlq`
+
+**File:** `apps/web/src/app/api/nlq/route.ts`
+
+**Triggered by:** `NlqPanel` when the regex parser fails to find structured filters (only the raw `search:` fallback tag is produced).
+
+Uses **tool use** with `tool_choice: { type: 'tool', name: 'set_filters' }` to force a structured JSON response matching the `AuditLogFilters` schema — no hallucinated field names are possible. Today's date is injected into the prompt to resolve relative time references ("yesterday", "last week").
+
+### Claude call
+
+```ts
+client.messages.create({
+  model: 'claude-sonnet-4-6',
+  max_tokens: 256,
+  tools: [{ name: 'set_filters', input_schema: { /* AuditLogFilters schema */ } }],
+  tool_choice: { type: 'tool', name: 'set_filters' },
+  messages: [{ role: 'user', content: prompt }],
+})
+```
+
+### Response
+
+```json
+{ "filters": { "outcome": "blocked", "startDate": "2026-05-08T00:00:00Z" }, "tags": ["outcome: blocked", "period: yesterday"], "source": "ai" }
+```
+
+---
+
 ## Token limits and cost considerations
 
 | Route | `max_tokens` | Typical use |
 |---|---|---|
 | `/api/summarize` | 600 | ~300–450 tokens in practice |
 | `/api/explain-event` | 500 | ~250–400 tokens in practice |
+| `/api/report-summaries` | 800 | ~500–700 tokens (four sections) |
+| `/api/report-addition` | 600 | ~200–500 tokens per addition |
+| `/api/nlq` | 256 | ~50–150 tokens (structured output only) |
 
-Each call to either route makes exactly one API request to Anthropic. There is no streaming, caching, or batching.
+Each call makes exactly one API request to Anthropic. There is no streaming, caching, or batching.

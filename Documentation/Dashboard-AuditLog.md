@@ -47,9 +47,10 @@ Component: `AuditLogFilters`
 | Control | Maps to | API param |
 |---|---|---|
 | Search input (free text) | `filters.search` | `search` (ILIKE on `action`, `agent_id`, `session_id`) |
-| Module dropdown | `filters.outcome` | `outcome` |
+| Module dropdown | `filters.outcome` | `outcome` — options labelled as module names but map to outcome values (`Autopilot` → `allowed`, `Copilot` → `flagged`, `Mpower Agent` → `blocked`) |
 | Action dropdown | `filters.eventType` | `event_type` |
 | Regulations dropdown | UI only | not wired to API |
+| Model ID (URL param) | `filters.modelId` | `model_id` — populated from `?model_id=` on load; enables deep-link from Model Registry detail drawer |
 | Clear button | Resets search, outcome, eventType, startDate, endDate | — |
 
 The filter bar also shows a result count: `"Showing N of X events"` using `totalCount` passed down from the page.
@@ -129,7 +130,7 @@ If `event.metadata` is non-empty, displayed as a formatted JSON `<pre>` block.
 
 **Footer buttons**  
 - Close
-- Export Event (UI only — not wired up)
+- Export Event — calls `exportSingleEventCSV(event)` from `lib/exportAuditLog.ts`; downloads a one-row CSV for this specific event without any additional API call
 
 Closing: backdrop click, Escape key, or Close button.
 

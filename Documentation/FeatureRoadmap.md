@@ -95,7 +95,7 @@ Wire the existing "All Regulations" dropdown in the audit log filter bar to the 
 | No authentication | Anyone with the URL can access all data; tenant ID is hardcoded |
 | Client-side sorting only | Sorting operates on the current page only, not the full result set |
 | Export cap at 5000 rows | `page_size=5000` is passed but the Go API clamps `page_size` to 200 in the current handler — exports may be incomplete for large datasets |
-| NLQ first-match-wins | Multiple outcome/type keywords in one query only apply the first match |
+| NLQ regex first-match-wins | In the regex path, multiple outcome/type keywords in one query only apply the first match; the AI fallback path resolves this for ambiguous queries |
 | Hardcoded values | "AI Decisions Today" (62,847), "Compliance Coverage" (100%), "decisions_today" in summarise payload are static strings |
 | SIEM push is simulated | No real syslog/SIEM endpoint — the push confirmation is UI-only |
 | Alert acknowledgement is in-memory | Refreshing the page resets acknowledged state |
