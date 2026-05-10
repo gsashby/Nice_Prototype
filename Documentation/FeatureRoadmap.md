@@ -17,7 +17,8 @@ Current state as of May 2026. Covers what is built, what is scaffolded but incom
 | Audit log export — CSV (filtered) | `/audit-log` | Downloads up to 5000 filtered events |
 | Audit log export — JSON (filtered) | `/audit-log` | Downloads with metadata envelope |
 | Audit log export — single event CSV | `/audit-log` | Export Event button in detail drawer downloads one-row CSV |
-| SIEM Push preview | `/audit-log` | CEF format modal, simulated push confirmation |
+| SIEM Push preview | `/audit-log` | CEF/JSON format modal, simulated push confirmation; integration summary strip |
+| SIEM Integration Configuration | `/audit-log` | Splunk HEC config form (endpoint URL, HEC token with show/hide, index, source, sourcetype, format, batch size, SSL verify, enabled toggle); accessible via gear icon or "Configure →" link in the SIEM Push modal; config held in React state and reflected immediately |
 | Policy Engine — list | `/policy-engine` | Sortable table of all policies with violation counts |
 | Policy Engine — toggle | `/policy-engine` | Enable/disable individual policies via API |
 | Policy Engine — create | `/policy-engine` | Form to create new policies with name, description, severity |

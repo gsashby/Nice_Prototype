@@ -142,14 +142,60 @@ Component: `SiemModal`
 Width: 680px, centred overlay  
 Triggered by: SIEM Push button in the page header
 
-Shows:
-- CEF format preview of the first 5 events from the fetched batch
-- Total event count
-- Target endpoint: `siem.internal:514` (hardcoded, simulated)
-- "Push N Events" button — clicking shows a success confirmation banner inline (`✓ N events pushed to SIEM endpoint`)
-- Cancel button
+`SiemModal` owns the SIEM integration configuration state (`SiemConfig`) and passes it to both the display and to `SiemConfigModal`.
 
-Closing: backdrop click, Escape key, or Cancel button.
+### Layout
+
+**Header** — "SIEM Push Preview" title with format and event count subtitle. Gear icon (⚙) button opens the configuration modal.
+
+**Integration summary strip** — a compact bar below the header showing:
+- Status dot (green = enabled, gray = disabled)
+- Integration name
+- Resolved endpoint host:port
+- Destination index
+- "Configure →" inline link (also opens the config modal)
+
+**Payload preview** — formatted CEF or JSON preview of the first 5 events from the fetched batch.
+
+**Warning banner** — shown when the integration is disabled, prompting the user to enable it in Configuration before pushing.
+
+**Success banner** — shown after push, references the configured endpoint: `✓ N events pushed to hostname:port`.
+
+**Footer** — shows batch size and sourcetype from config; Cancel button; "Push N Events" button (disabled when integration is disabled or already pushed).
+
+Closing: backdrop click, Escape key (when config modal is not open), or Cancel button.
+
+---
+
+## SIEM Configuration Modal
+
+Component: `SiemConfigModal`  
+File: `apps/web/src/components/audit-log/SiemConfigModal.tsx`  
+Width: 620px, centred overlay at z-60 (above SiemModal)  
+Triggered by: gear icon in SiemModal header, or "Configure →" link in integration strip
+
+Pre-populated with a Splunk HTTP Event Collector (HEC) demo configuration. All fields are editable. Changes take effect immediately in `SiemModal` on save (held in React state — not persisted to the server).
+
+### Configuration fields
+
+| Section | Field | Type | Default |
+|---|---|---|---|
+| Status | Integration Status | Toggle | Enabled |
+| Integration Details | Integration Name | Text | `NICE AI Trust Center → Splunk` |
+| Endpoint | HEC Endpoint URL | Text | `https://splunk.internal:8088/services/collector/event` |
+| Endpoint | HEC Token | Password (show/hide) | demo UUID |
+| Endpoint | Verify SSL Certificate | Toggle | On |
+| Data Settings | Index | Text | `ai_governance` |
+| Data Settings | Source | Text | `nice-ai-trust-center` |
+| Data Settings | Sourcetype | Text | `_json` |
+| Data Settings | Event Format | Select: CEF / JSON | `CEF` |
+| Data Settings | Batch Size | Number (1–5000) | `500` |
+
+**Disabled integration warning** — if SSL Verify is off, an amber "Not recommended in production" badge appears inline.
+
+**Connection test note** — a blue info banner prompts the user to use the SIEM Push button to verify connectivity after saving.
+
+**Save** — clicking "Save Configuration" shows a brief `✓ Saved` confirmation then closes the modal. The updated config is reflected immediately in `SiemModal`'s integration strip and footer metadata.
 
 ---
 
