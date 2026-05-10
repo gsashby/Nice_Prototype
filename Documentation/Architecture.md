@@ -159,5 +159,5 @@ ai-trust-center/
 | Incident Timeline | Wired — vertical chronological log of blocked/flagged events, severity derivation, date grouping, Load More pagination, AuditLogDrawer integration |
 | Data Flow Visualizer | Wired — animated SVG pipeline diagram, node detail, live KPIs, recent events feed |
 | NLQ hybrid AI | Wired — regex fast path + Claude Sonnet 4.6 fallback via `POST /api/nlq` using tool use for structured output |
-| Agent Monitor | Placeholder page — not built |
+| Agent Trust Panel | Wired — trust score, outcome breakdown, policy violations, and sessions aggregated client-side from audit events; detail drawer with deep-links to audit log |
 | Authentication / RBAC | Not implemented — all requests use the seed tenant ID |

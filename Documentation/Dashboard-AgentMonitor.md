@@ -1,8 +1,13 @@
 # AI Agent Monitor
 
 **Route:** `/ai-agents`  
-**File:** `apps/web/src/app/(dashboard)/ai-agents/page.tsx`  
-**Status: Placeholder — shows "Agent monitor — coming soon".**
+**Files:**
+- `apps/web/src/app/(dashboard)/ai-agents/page.tsx`
+- `apps/web/src/hooks/useAgents.ts`
+- `apps/web/src/components/agent-monitor/AgentTable.tsx`
+- `apps/web/src/components/agent-monitor/AgentDetailDrawer.tsx`
+
+**Status: Fully implemented.** Data is aggregated client-side from `GET /api/v1/audit-log` (up to 200 events per period). No dedicated `/api/v1/agents` endpoint is required.
 
 ---
 
@@ -147,9 +152,21 @@ Clicking a session ID navigates to `/audit-log?search={session_id}`, using the e
 
 ---
 
-## What needs to be built
+## Implementation notes (built)
 
-### Go API — new endpoints
+All data is derived client-side by fetching up to 200 audit events via `useAuditLog` (the Go API's max page size) and grouping by `agent_id`. The `useAgents` hook returns both the per-agent summaries and the fleet-wide aggregates.
+
+**Limitation:** Only the 200 most-recent events are fetched per period. For time periods with high event volume this means older events are not represented. A dedicated Go API endpoint aggregating via SQL `GROUP BY` would give complete counts.
+
+**Time period selector:** Converts the dropdown value to a `startDate` ISO string using `date-fns` `subDays` / `startOfDay`. Options: Last 7 Days, Last 30 Days, All Time.
+
+**Session links:** Clicking a session row in the drawer navigates to `/audit-log?search={session_id}`. Clicking "View All Events" navigates to `/audit-log?search={agent_id}`. Both use the existing `search` ILIKE filter which matches against `session_id` and `agent_id`.
+
+---
+
+## What could be improved (server-side)
+
+### Go API — recommended endpoints
 
 #### `GET /api/v1/agents`
 
