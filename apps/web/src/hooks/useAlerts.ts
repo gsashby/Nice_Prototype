@@ -9,10 +9,10 @@ export type LiveAlert = {
   timestamp: string;
 };
 
-export function useAlerts() {
+export function useAlerts(days = 7) {
   return useQuery({
-    queryKey: ['governance', 'alerts'],
-    queryFn: () => apiGet<{ alerts: LiveAlert[] }>('/api/v1/governance/alerts'),
+    queryKey: ['governance', 'alerts', days],
+    queryFn: () => apiGet<{ alerts: LiveAlert[] }>(`/api/v1/governance/alerts?days=${days}`),
     refetchInterval: 15_000,
   });
 }

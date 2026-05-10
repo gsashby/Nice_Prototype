@@ -28,8 +28,8 @@ function statusBadge(score: number) {
 
 type Model = ModelHealth;
 
-export default function ModelHealthTable() {
-  const { data, isLoading } = useModelHealth();
+export default function ModelHealthTable({ days = 7 }: { days?: number }) {
+  const { data, isLoading } = useModelHealth(days);
   const models: Model[] = data?.models ?? [];
   const { sorted, sort, toggle } = useSortable<Model>(models);
   const [selected, setSelected] = useState<Model | null>(null);

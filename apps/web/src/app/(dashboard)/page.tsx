@@ -15,10 +15,17 @@ import { useGovernanceMetrics } from '@/hooks/useGovernanceMetrics';
 import { useAlerts } from '@/hooks/useAlerts';
 import { useModelHealth } from '@/hooks/useModelHealth';
 
+const DAY_OPTIONS = [
+  { label: 'Last 7 Days',  days: 7  },
+  { label: 'Last 30 Days', days: 30 },
+  { label: 'Last 90 Days', days: 90 },
+];
+
 export default function GovernanceDashboard() {
-  const { data, isLoading, isError } = useGovernanceMetrics();
-  const { data: alertsData } = useAlerts();
-  const { data: modelData } = useModelHealth();
+  const [days, setDays] = useState(7);
+  const { data, isLoading, isError } = useGovernanceMetrics(days);
+  const { data: alertsData } = useAlerts(days);
+  const { data: modelData } = useModelHealth(days);
 
   const router = useRouter();
   const [modalOpen, setModalOpen] = useState(false);
@@ -64,12 +71,14 @@ export default function GovernanceDashboard() {
         actions={
           <div className="flex items-center gap-2">
             <select
+              value={days}
+              onChange={(e) => setDays(Number(e.target.value))}
               className="appearance-none rounded-[5px] border border-[#D1D5DB] bg-white text-[12.5px] text-[#1F2937] focus:border-[#2563EB] focus:outline-none"
               style={{ padding: '7px 32px 7px 10px', width: 160, backgroundImage: "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")", backgroundPosition: 'right 8px center', backgroundRepeat: 'no-repeat', backgroundSize: '16px' }}
             >
-              <option>Last 7 Days</option>
-              <option>Last 30 Days</option>
-              <option>Last 90 Days</option>
+              {DAY_OPTIONS.map(({ label, days: d }) => (
+                <option key={d} value={d}>{label}</option>
+              ))}
             </select>
             <button className="inline-flex items-center gap-[6px] rounded-[5px] border border-[#D1D5DB] bg-white font-semibold text-[#374151] hover:bg-[#F9FAFB] transition-all whitespace-nowrap" style={{ padding: '4px 10px', fontSize: 12 }}>
               <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
@@ -151,12 +160,12 @@ export default function GovernanceDashboard() {
 
       {/* Charts row: 2fr 1fr */}
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16 }}>
-        <GovernanceScoreChart trend={data?.trend ?? []} isLoading={isLoading} />
-        <AlertFeed />
+        <GovernanceScoreChart trend={data?.trend ?? []} isLoading={isLoading} days={days} />
+        <AlertFeed days={days} />
       </div>
 
       {/* Bottom row */}
-      <ModelHealthTable />
+      <ModelHealthTable days={days} />
 
       <RecommendedActions
         governanceScore={data?.governance_score}

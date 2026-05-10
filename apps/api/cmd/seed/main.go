@@ -234,7 +234,12 @@ func seedPolicies(ctx context.Context, db *pgxpool.Pool) error {
 }
 
 func seedAuditEvents(ctx context.Context, db *pgxpool.Pool) error {
-	// Generate events across the last 42 days (6 weeks), ~20-80 events per day.
+	// Wipe existing events for the demo tenant so re-seeding stays idempotent.
+	if _, err := db.Exec(ctx, `DELETE FROM audit_events WHERE tenant_id = $1`, tenantID); err != nil {
+		return fmt.Errorf("truncate audit_events: %w", err)
+	}
+
+	// Generate events across the last 90 days, ~30-90 events per day.
 	// Higher volume during business hours. Violations cluster around "bad" models.
 	rng := rand.New(rand.NewSource(42)) // deterministic seed for reproducibility
 	_ = rng
@@ -244,7 +249,7 @@ func seedAuditEvents(ctx context.Context, db *pgxpool.Pool) error {
 
 	batch := &pgxBatch{}
 
-	for day := 42; day >= 0; day-- {
+	for day := 90; day >= 0; day-- {
 		dayStart := now.AddDate(0, 0, -day).Truncate(24 * time.Hour)
 		eventsThisDay := 30 + rand.Intn(60) // 30–90 events/day
 
@@ -300,7 +305,7 @@ func seedAuditEvents(ctx context.Context, db *pgxpool.Pool) error {
 		}
 	}
 
-	log.Printf("  ✓ %d audit events (42 days of history)", total)
+	log.Printf("  ✓ %d audit events (90 days of history)", total)
 	return nil
 }
 

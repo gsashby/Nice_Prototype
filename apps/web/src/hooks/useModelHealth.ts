@@ -13,10 +13,10 @@ export type ModelHealth = {
   violation_count: number;
 };
 
-export function useModelHealth() {
+export function useModelHealth(days = 7) {
   return useQuery({
-    queryKey: ['governance', 'models'],
-    queryFn: () => apiGet<{ models: ModelHealth[] }>('/api/v1/governance/models'),
+    queryKey: ['governance', 'models', days],
+    queryFn: () => apiGet<{ models: ModelHealth[] }>(`/api/v1/governance/models?days=${days}`),
     refetchInterval: 30_000,
   });
 }
