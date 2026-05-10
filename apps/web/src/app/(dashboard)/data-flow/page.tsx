@@ -127,6 +127,7 @@ export default function DataFlowPage() {
             </a>
             <button
               onClick={() => setAnimated((a) => !a)}
+              title={animated ? 'Pause the animated flow arrows to inspect individual connections at rest' : 'Resume the animated flow arrows to show live event movement across the pipeline'}
               className="inline-flex items-center gap-1.5 rounded-[5px] border border-[#D1D5DB] bg-white font-semibold text-[#374151] hover:bg-[#F9FAFB] transition-all"
               style={{ padding: '4px 10px', fontSize: 12 }}
             >
