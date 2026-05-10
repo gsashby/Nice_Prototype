@@ -27,7 +27,7 @@ export type FleetSummary = {
 function trustScore(allowed: number, total: number, avgConf: number, noViolRate: number): number {
   if (total === 0) return 0;
   const allowRate = allowed / total;
-  return Math.round((allowRate * 50 + avgConf * 35 + noViolRate * 15) * 1000) / 10;
+  return Math.round((allowRate * 50 + avgConf * 35 + noViolRate * 15) * 10) / 10;
 }
 
 export function useAgents(startDate?: string) {
