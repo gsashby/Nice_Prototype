@@ -22,6 +22,9 @@ The Governance Dashboard is the landing page of the AI Trust Center. It gives a 
 │ Governance Score Chart (2fr)     │ Active Alerts Feed (1fr) │
 ├──────────────────────────────────┴──────────────────────────┤
 │ Module Health Table (full width)                             │
+├─────────────────────────────────────────────────────────────┤
+│ Recommended Actions (full width)                             │
+│  └─ Recommendation Drawer (right fly-out, on row click)      │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -146,11 +149,73 @@ See `Documentation/API-AnthropicClaude.md` for the full prompt and token details
 
 ---
 
+---
+
+## Recommended Actions
+
+Component: `RecommendedActions` (`components/dashboard/RecommendedActions.tsx`)  
+Data source: Static — no API call required to render the panel
+
+A full-width panel below the Module Health Table surfacing 10 curated governance recommendations across 4 colour-coded categories.
+
+### Categories
+
+| Category | Colour | Icon | Count |
+|---|---|---|---|
+| Policy & Compliance | Blue `#2563EB` | ShieldCheck | 3 |
+| Model Performance | Green `#16A34A` | Activity | 3 |
+| Security & Access | Red `#DC2626` | Lock | 2 |
+| Operational | Purple `#7C3AED` | Settings | 2 |
+
+Each category renders as a coloured header strip followed by its recommendation rows sorted by priority (critical → high → medium → low). The panel header shows total counts of critical and high items as coloured badges.
+
+### Recommendation rows
+
+Each row shows:
+- Priority dot (colour-coded: red = critical, orange = high, amber = medium, blue = low)
+- Title (bold) and summary (muted)
+- Priority badge and module badge
+- Chevron — clicking opens the `RecommendationDrawer`
+
+---
+
+## Recommendation Drawer
+
+Component: `RecommendationDrawer` (`components/dashboard/RecommendationDrawer.tsx`)
+
+A right fly-out panel (480px wide) that slides in with a CSS `translateX` animation when a recommendation row is clicked.
+
+**Closing:** backdrop click, Escape key, or the × button.
+
+**State resets** (checked items, AI analysis) whenever a different recommendation is opened.
+
+### Drawer sections (top to bottom)
+
+**Header** — category badge, priority badge, module badge, title, summary. Badges and category name are colour-coded to match the panel.
+
+**About this issue** — detailed prose description explaining the root cause, impact, and governance implications.
+
+**Recommended Actions** — a pre-defined checklist of 5 specific, concrete action steps. Each step is an interactive checkbox:
+- Click to toggle — ticked items show a green `CheckSquare` icon and strikethrough text
+- A progress counter (`N of 5 actions completed`) appears once any step is ticked
+- Checklist state is local to the drawer session — not persisted across page reloads
+
+**AI Analysis** — purple-bordered section at the bottom. Not loaded automatically. Shows a description and a **Get AI Analysis** button (purple, `#7C3AED`). On click:
+1. Calls `POST /api/recommend-action` with the recommendation + current dashboard context (governance score, violation count, alert count)
+2. Shows a skeleton loader (3 animated bars) while waiting
+3. Renders Claude's narrative analysis on completion
+4. The button disappears after the request is made to prevent duplicate calls
+5. On error, shows a red inline error message
+
+---
+
 ## Data dependencies
 
 | Hook | API endpoint | Used by |
 |---|---|---|
-| `useGovernanceMetrics` | `GET /api/v1/governance/metrics` | KPI cards, chart, Summarize with AI payload |
-| `useAlerts` | `GET /api/v1/governance/alerts` | Alert feed, Summarize with AI payload |
+| `useGovernanceMetrics` | `GET /api/v1/governance/metrics` | KPI cards, chart, Summarize with AI payload, Recommendation Drawer context |
+| `useAlerts` | `GET /api/v1/governance/alerts` | Alert feed, Summarize with AI payload, Recommendation Drawer context |
 | `useModelHealth` | `GET /api/v1/governance/models` | Module health table, Summarize with AI payload |
 | `useAuditLog` | `GET /api/v1/audit-log` | Alert drawer mini event list; NLQ result table |
+| _(none — static data)_ | — | `RecommendedActions` panel |
+| `POST /api/recommend-action` | Next.js route → Claude | `RecommendationDrawer` AI Analysis (on demand) |

@@ -114,13 +114,15 @@ The form operates in two modes depending on whether the `policy` prop is provide
 In create mode, severity defaults to Medium and `enabled` defaults to `true`.  
 In edit mode, all fields are pre-filled from the selected policy, including the rule condition.
 
-### Trigger Condition (rule editor)
+### Trigger Conditions (rule editor)
 
-Every policy includes a structured rule condition that tells the system exactly when to fire. This is stored as `rule_config` JSON in the database and evaluated by the Trust Layer on every AI request.
+Every policy includes one or more structured trigger conditions that tell the system exactly when to fire. These are stored as `rule_config` JSON in the database and evaluated by the Trust Layer on every AI request.
 
-The rule editor has three parts:
+#### Condition rows
 
-**1. When (field selector)**
+Each condition is a self-contained row with three selectors:
+
+**Field**
 
 | Option | Description |
 |---|---|
@@ -129,7 +131,7 @@ The rule editor has three parts:
 | Outcome | The current event outcome: `allowed`, `blocked`, `flagged` |
 | Model Name | The name of the AI model that generated the response |
 
-**2. Is (operator selector)** — auto-populates based on the selected field:
+**Is (operator)** — auto-populates when the field changes:
 
 | Field | Available operators |
 |---|---|
@@ -138,18 +140,36 @@ The rule editor has three parts:
 | Outcome | is, is not |
 | Model Name | equals, is not, contains |
 
-**3. Value** — dynamic input based on field type:
+**Value** — dynamic input based on field type:
 - Confidence Score → number input (0–1, step 0.01)
 - Event Type → dropdown of known event types
 - Outcome → dropdown of `allowed`, `blocked`, `flagged`
 - Model Name → free text input
 
-**Live preview** — a blue monospaced banner below the condition selectors shows the rule as a readable expression, e.g.:
+#### Multiple conditions
+
+Click **+ Add condition** to add additional rows. When more than one condition is present, an **AND / OR** toggle appears at the top of each subsequent row:
+
+| Setting | Behaviour |
+|---|---|
+| **AND** (blue) | All conditions must be true simultaneously for the rule to fire |
+| **OR** (purple) | Any single condition being true is sufficient to fire the rule |
+
+The logic setting is shared across all rows — the entire rule evaluates as `(cond1) AND (cond2) AND …` or `(cond1) OR (cond2) OR …`.
+
+Click the **×** button on any row to remove it. At least one condition must always remain.
+
+#### Live preview
+
+A blue monospaced banner below the condition rows shows the complete rule as a readable expression that updates in real time, e.g.:
+
 ```
-IF confidence_score < 0.70 → BLOCK
+IF (conf. score < 0.70) AND (event type = inference) → BLOCK
 ```
 
-**Then (action selector)** — three toggle buttons:
+#### Then (action selector)
+
+Three toggle buttons choose what happens when the rule fires:
 
 | Action | Behaviour |
 |---|---|
@@ -165,25 +185,27 @@ Every policy created or edited through the form stores the following in `rule_co
 
 ```json
 {
-  "condition": {
-    "field": "confidence_score",
-    "operator": "below",
-    "value": 0.70
-  },
+  "conditions": [
+    { "field": "confidence_score", "operator": "below",  "value": 0.70 },
+    { "field": "event_type",       "operator": "equals", "value": "inference" }
+  ],
+  "logic": "AND",
   "action": "block"
 }
 ```
 
+Single-condition policies are stored in the same array format (one element, `logic` defaults to `"AND"`). Seed policies that use the legacy `"condition"` (singular) key are read correctly and converted to the array format on the next save.
+
 ### Rule summary in the policy list
 
-The policy list's **Description & Rule** column shows the human-readable description and, where a structured condition exists, a compact inline summary:
+The policy list's **Description & Rule** column shows the human-readable description and, where a structured condition exists, a compact inline summary of every condition and the action:
 
 ```
-Block AI responses with low confidence
-[conf. score < 0.70]  [→ block]
+Block AI responses with low confidence during inference
+[conf. score < 0.70]  [AND]  [event type = inference]  [→ block]
 ```
 
-The condition is shown as a monospace code tag and the action as a colour-coded badge (red for block, amber for flag, green for allow). Seed policies that use a legacy `rule_config` format display only their description.
+Each condition is a monospace code tag. AND/OR logic badges are colour-coded (blue for AND, purple for OR). The action badge is colour-coded (red for block, amber for flag, green for allow). Seed policies that use the legacy `rule_config` format display only their description.
 
 ### Submission
 

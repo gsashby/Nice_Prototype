@@ -39,19 +39,37 @@ const FIELD_LABEL: Record<string, string> = {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function RuleSummary({ ruleConfig }: { ruleConfig?: Record<string, any> }) {
-  const condition = ruleConfig?.condition;
   const action = ruleConfig?.action;
-  if (!condition || !action) return null;
+  if (!action) return null;
 
-  const field    = FIELD_LABEL[condition.field]  ?? condition.field;
-  const operator = OPERATOR_SYMBOL[condition.operator] ?? condition.operator;
-  const value    = String(condition.value ?? '');
+  // Support both new multi-condition format and legacy single-condition format
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const conditions: Array<Record<string, any>> = ruleConfig?.conditions
+    ?? (ruleConfig?.condition ? [ruleConfig.condition] : []);
+
+  if (conditions.length === 0) return null;
+
+  const logic: string = ruleConfig?.logic ?? 'AND';
 
   return (
-    <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
-      <code className="rounded-[3px] bg-[#F3F4F6] px-1.5 py-0.5 font-mono text-[10px] text-[#374151]">
-        {field} {operator} {value}
-      </code>
+    <div className="mt-1.5 flex items-center gap-1 flex-wrap">
+      {conditions.map((c, i) => {
+        const field    = FIELD_LABEL[c.field as string]  ?? c.field;
+        const operator = OPERATOR_SYMBOL[c.operator as string] ?? c.operator;
+        const value    = String(c.value ?? '');
+        return (
+          <span key={i} className="inline-flex items-center gap-1">
+            {i > 0 && (
+              <span className={`rounded px-1 py-0.5 text-[9px] font-bold ${logic === 'AND' ? 'bg-[#DBEAFE] text-[#1D4ED8]' : 'bg-[#F5F3FF] text-[#7C3AED]'}`}>
+                {logic}
+              </span>
+            )}
+            <code className="rounded-[3px] bg-[#F3F4F6] px-1.5 py-0.5 font-mono text-[10px] text-[#374151]">
+              {field} {operator} {value}
+            </code>
+          </span>
+        );
+      })}
       <span className={`rounded-full px-1.5 py-0.5 text-[9.5px] font-bold ${actionStyles[action] ?? 'bg-[#F3F4F6] text-[#4B5563]'}`}>
         → {action}
       </span>
