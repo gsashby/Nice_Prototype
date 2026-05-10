@@ -59,7 +59,7 @@ export default function NlqPanel() {
       {/* Input + suggestions — always visible */}
       <div className="overflow-hidden rounded-lg border border-[#E5E7EB] bg-white shadow-[0_1px_3px_rgba(0,0,0,.06)]">
         <div style={{ padding: '14px 16px', borderBottom: '1px solid #E5E7EB' }}>
-          <div className="text-[13.5px] font-bold text-[#111827]">Natural Language Query</div>
+          <div className="text-[13.5px] font-bold text-[#111827]">CXone Query Explorer</div>
           <div className="text-[11.5px] text-[#9CA3AF]">Ask questions about your governance data in plain English</div>
         </div>
         <div style={{ padding: '14px 16px' }}>

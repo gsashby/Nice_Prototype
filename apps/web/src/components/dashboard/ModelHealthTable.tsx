@@ -46,12 +46,12 @@ export default function ModelHealthTable() {
           <table className="w-full border-collapse">
             <thead>
               <tr className="border-b-2 border-[#E5E7EB] bg-[#F9FAFB] text-left">
-                <SortTh label="Module"       colKey="name"             sort={sort} onToggle={toggle} className="pl-4 pr-3.5" />
-                <SortTh label="Model Version" colKey="type"            sort={sort} onToggle={toggle} className="px-3.5" />
-                <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Coverage</th>
-                <SortTh label="Avg Conf."    colKey="confidence_avg"   sort={sort} onToggle={toggle} className="px-3.5" />
-                <SortTh label="Gov. Score"   colKey="governance_score" sort={sort} onToggle={toggle} className="px-3.5" />
-                <th className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Status</th>
+                <SortTh label="Module"       colKey="name"             sort={sort} onToggle={toggle} className="pl-4 pr-3.5" tooltip="The AI module (e.g. Autopilot, Copilot, mPower) being monitored. Click to sort." />
+                <SortTh label="Model Version" colKey="type"            sort={sort} onToggle={toggle} className="px-3.5"    tooltip="The underlying AI model version powering this module. Click to sort." />
+                <th title="Percentage of module interactions captured in the audit log. 100% means every request and response is recorded." className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Coverage</th>
+                <SortTh label="Avg Conf."    colKey="confidence_avg"   sort={sort} onToggle={toggle} className="px-3.5"    tooltip="Average confidence score (0–1) of AI responses from this module. Higher values indicate the model is producing more certain outputs. Click to sort." />
+                <SortTh label="Gov. Score"   colKey="governance_score" sort={sort} onToggle={toggle} className="px-3.5"    tooltip="Governance compliance score: the percentage of interactions that passed all active policy rules. Click to sort." />
+                <th title="Overall health status derived from the governance score — Healthy (≥85%), Watch (≥70%), or Critical (<70%)." className="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] whitespace-nowrap">Status</th>
               </tr>
             </thead>
             <tbody>

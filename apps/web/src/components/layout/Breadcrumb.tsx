@@ -7,7 +7,7 @@ const labelMap: Record<string, string> = {
   'audit-log': 'Audit Log',
   'policy-engine': 'Policy Engine',
   'board-reports': 'Board Reports',
-  'nlq': 'NL Query',
+  'nlq': 'CXone Query Explorer',
   'ai-agents': 'AI Agents',
 };
 
