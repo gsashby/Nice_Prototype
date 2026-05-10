@@ -33,6 +33,65 @@ export default function GovernanceDashboard() {
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [summaryError, setSummaryError] = useState<string | null>(null);
 
+  function handleExport() {
+    const esc = (v: string | number) => {
+      const s = String(v);
+      return s.includes(',') || s.includes('"') || s.includes('\n')
+        ? `"${s.replace(/"/g, '""')}"`
+        : s;
+    };
+    const row = (...cols: (string | number)[]) => cols.map(esc).join(',');
+    const periodLabel = DAY_OPTIONS.find((o) => o.days === days)?.label ?? `Last ${days} Days`;
+    const today = new Date().toISOString().slice(0, 10);
+
+    const sections: string[] = [];
+
+    // ── Summary ──────────────────────────────────────────────────────────────
+    sections.push('SUMMARY');
+    sections.push(row('Period', 'AI Decisions', 'Avg Governance Score', 'Policy Violations', 'Compliance Coverage'));
+    sections.push(row(
+      periodLabel,
+      data?.total_inferences ?? 0,
+      data ? data.governance_score.toFixed(2) : '',
+      data?.policy_violations_24h ?? 0,
+      '100%',
+    ));
+
+    // ── Module Health ─────────────────────────────────────────────────────────
+    sections.push('');
+    sections.push('MODULE HEALTH');
+    sections.push(row('Module', 'Model Version', 'Coverage', 'Avg Confidence', 'Governance Score', 'Total Inferences', 'Violations', 'Status'));
+    for (const m of modelData?.models ?? []) {
+      const status = m.governance_score >= 85 ? 'Healthy' : m.governance_score >= 70 ? 'Watch' : 'Critical';
+      sections.push(row(m.name, m.type, '100%', m.confidence_avg.toFixed(2), `${m.governance_score.toFixed(1)}%`, m.total_inferences, m.violation_count, status));
+    }
+
+    // ── Governance Score Trend ────────────────────────────────────────────────
+    sections.push('');
+    sections.push('GOVERNANCE SCORE TREND');
+    sections.push(row('Date', 'Score'));
+    for (const pt of data?.trend ?? []) {
+      sections.push(row(pt.date, pt.score));
+    }
+
+    // ── Active Alerts ─────────────────────────────────────────────────────────
+    sections.push('');
+    sections.push('ACTIVE ALERTS');
+    sections.push(row('Severity', 'Title', 'Description', 'Timestamp'));
+    for (const a of alertsData?.alerts ?? []) {
+      sections.push(row(a.severity, a.title, a.description, new Date(a.timestamp).toISOString()));
+    }
+
+    const csv = sections.join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `governance-report-${days}d-${today}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   async function handleSummarize() {
     setModalOpen(true);
     setSummaryLoading(true);
@@ -80,7 +139,11 @@ export default function GovernanceDashboard() {
                 <option key={d} value={d}>{label}</option>
               ))}
             </select>
-            <button className="inline-flex items-center gap-[6px] rounded-[5px] border border-[#D1D5DB] bg-white font-semibold text-[#374151] hover:bg-[#F9FAFB] transition-all whitespace-nowrap" style={{ padding: '4px 10px', fontSize: 12 }}>
+            <button
+              onClick={handleExport}
+              className="inline-flex items-center gap-[6px] rounded-[5px] border border-[#D1D5DB] bg-white font-semibold text-[#374151] hover:bg-[#F9FAFB] transition-all whitespace-nowrap"
+              style={{ padding: '4px 10px', fontSize: 12 }}
+            >
               <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
               Export
             </button>
