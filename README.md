@@ -89,8 +89,10 @@ src/
 | `GET` | `/api/v1/governance/models` | Per-model health: confidence avg, governance score, inference count |
 | `GET` | `/api/v1/governance/alerts` | Active governance alerts with severity |
 | `GET` | `/api/v1/audit-log` | Paginated audit events (filters: `search`, `event_type`, `outcome`, `start_date`, `end_date`) |
-| `GET` | `/api/v1/policies` | List all policies |
+| `GET` | `/api/v1/policies` | List all policies with 7-day violation counts |
 | `POST` | `/api/v1/policies` | Create a new policy |
+| `PUT` | `/api/v1/policies/:id` | Update a policy (name, description, severity, enabled) |
+| `DELETE` | `/api/v1/policies/:id` | Permanently delete a policy |
 | `PATCH` | `/api/v1/policies/:id/toggle` | Enable / disable a policy |
 
 All endpoints accept a `tenant_id` query param (defaults to the seed tenant).
@@ -208,6 +210,34 @@ Exports fetch up to 5,000 events in a single request.
 
 ---
 
+## Testing
+
+The test suite lives in `tests/` at the repository root and is split into two tiers.
+
+| Tier | Location | Count | Requires |
+|---|---|---|---|
+| Go unit tests | `tests/unit/go/` | 12 tests | Nothing — no DB, no network |
+| TypeScript unit tests | `tests/unit/web/` | 60 tests | Nothing — no browser, no network |
+| System / integration tests | `tests/system/` | 33 tests | Docker + Go API on `:8080` |
+
+```bash
+# Install TypeScript test dependencies (once)
+cd tests/unit/web && npm install
+
+# Run Go unit tests
+cd tests/unit/go && go test ./... -v
+
+# Run TypeScript unit tests
+cd tests/unit/web && npm test
+
+# Run system tests (services must be running)
+cd tests/system && go test ./... -v -timeout 30s
+```
+
+For full coverage details and instructions for adding new tests, see **[Documentation/Testing.md](Documentation/Testing.md)**.
+
+---
+
 ## Common commands
 
 | Command | What it does |
@@ -220,7 +250,9 @@ Exports fetch up to 5,000 events in a single request.
 | `npm run db:reset` | Wipe and restart Docker volumes |
 | `cd apps/api && make run` | Start the Go API |
 | `cd apps/api && make seed` | Seed the database |
-| `cd apps/api && make test` | Run Go tests |
+| `cd tests/unit/go && go test ./... -v` | Run Go unit tests |
+| `cd tests/unit/web && npm test` | Run TypeScript unit tests |
+| `cd tests/system && go test ./... -v -timeout 30s` | Run system integration tests |
 
 ---
 

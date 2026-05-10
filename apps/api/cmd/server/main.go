@@ -74,6 +74,8 @@ func main() {
 	// Policy Engine
 	v1.Get("/policies", policyHandler.List)
 	v1.Post("/policies", policyHandler.Create)
+	v1.Put("/policies/:id", policyHandler.Update)
+	v1.Delete("/policies/:id", policyHandler.Delete)
 	v1.Patch("/policies/:id/toggle", policyHandler.ToggleEnabled)
 
 	log.Printf("API server starting on :%s", cfg.APIPort)

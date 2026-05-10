@@ -101,6 +101,46 @@ func (r *PolicyRepo) Create(ctx context.Context, tenantID string, req models.Cre
 	return p, nil
 }
 
+// Update replaces the mutable fields of a policy.
+func (r *PolicyRepo) Update(ctx context.Context, policyID, tenantID string, req models.CreatePolicyRequest) (*models.Policy, error) {
+	if req.RuleConfig == nil {
+		req.RuleConfig = json.RawMessage("{}")
+	}
+
+	var p models.Policy
+	err := r.db.QueryRow(ctx,
+		`UPDATE policies
+		 SET name        = $3,
+		     description = $4,
+		     severity    = $5,
+		     enabled     = $6,
+		     rule_config = $7,
+		     updated_at  = NOW()
+		 WHERE id = $1 AND tenant_id = $2
+		 RETURNING id, tenant_id, name, description, severity, enabled, rule_config, created_at, updated_at`,
+		policyID, tenantID, req.Name, req.Description, req.Severity, req.Enabled, req.RuleConfig,
+	).Scan(&p.ID, &p.TenantID, &p.Name, &p.Description, &p.Severity, &p.Enabled, &p.RuleConfig, &p.CreatedAt, &p.UpdatedAt)
+	if err != nil {
+		return nil, fmt.Errorf("policy not found")
+	}
+	return &p, nil
+}
+
+// Delete removes a policy permanently.
+func (r *PolicyRepo) Delete(ctx context.Context, policyID, tenantID string) error {
+	tag, err := r.db.Exec(ctx,
+		`DELETE FROM policies WHERE id = $1 AND tenant_id = $2`,
+		policyID, tenantID,
+	)
+	if err != nil {
+		return fmt.Errorf("delete policy: %w", err)
+	}
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("policy not found")
+	}
+	return nil
+}
+
 // ToggleEnabled flips the enabled state of a policy.
 func (r *PolicyRepo) ToggleEnabled(ctx context.Context, policyID, tenantID string, enabled bool) error {
 	tag, err := r.db.Exec(ctx,

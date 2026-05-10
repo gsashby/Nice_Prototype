@@ -70,6 +70,17 @@ Edges are animated using native SVG `<animate>` elements that cycle `stroke-dash
 
 The **Pause / Resume flow** button in the page header conditionally renders the animated overlay paths, instantly freezing or restarting all edge animations.
 
+---
+
+## Page header actions
+
+Two controls appear in the top-right of the page header:
+
+| Control | Type | Description |
+|---|---|---|
+| **AI Usage Policy** | External link | Opens NICE's AI Services Policy (`niceactimize.com/terms-and-conditions/ai-services-policy`) in a new tab. Styled as a blue outlined button with a document icon. Uses `rel="noopener noreferrer"` for security. |
+| **Pause / Resume flow** | Button | Toggles SVG edge animation on and off. |
+
 ### Node interaction
 
 Clicking any node selects it (highlighted with a colour-matched glow ring) and populates the **Node Detail** card in the right panel. Clicking the same node again deselects it.

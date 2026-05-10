@@ -50,6 +50,47 @@ func (h *PolicyHandler) Create(c *fiber.Ctx) error {
 	return c.Status(201).JSON(policy)
 }
 
+// Update godoc — PUT /api/v1/policies/:id
+func (h *PolicyHandler) Update(c *fiber.Ctx) error {
+	tenantID := c.Query("tenant_id", "00000000-0000-0000-0000-000000000001")
+	policyID := c.Params("id")
+
+	var req models.CreatePolicyRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "invalid request body"})
+	}
+	if req.Name == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "name is required"})
+	}
+	validSeverities := map[string]bool{"critical": true, "high": true, "medium": true, "low": true}
+	if !validSeverities[req.Severity] {
+		return c.Status(400).JSON(fiber.Map{"error": "severity must be critical|high|medium|low"})
+	}
+
+	policy, err := h.repo.Update(c.Context(), policyID, tenantID, req)
+	if err != nil {
+		if err.Error() == "policy not found" {
+			return c.Status(404).JSON(fiber.Map{"error": "policy not found"})
+		}
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(policy)
+}
+
+// Delete godoc — DELETE /api/v1/policies/:id
+func (h *PolicyHandler) Delete(c *fiber.Ctx) error {
+	tenantID := c.Query("tenant_id", "00000000-0000-0000-0000-000000000001")
+	policyID := c.Params("id")
+
+	if err := h.repo.Delete(c.Context(), policyID, tenantID); err != nil {
+		if err.Error() == "policy not found" {
+			return c.Status(404).JSON(fiber.Map{"error": "policy not found"})
+		}
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(fiber.Map{"ok": true})
+}
+
 // ToggleEnabled godoc — PATCH /api/v1/policies/:id/toggle
 func (h *PolicyHandler) ToggleEnabled(c *fiber.Ctx) error {
 	tenantID := c.Query("tenant_id", "00000000-0000-0000-0000-000000000001")

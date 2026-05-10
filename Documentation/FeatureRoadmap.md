@@ -19,9 +19,12 @@ Current state as of May 2026. Covers what is built, what is scaffolded but incom
 | Audit log export — single event CSV | `/audit-log` | Export Event button in detail drawer downloads one-row CSV |
 | SIEM Push preview | `/audit-log` | CEF/JSON format modal, simulated push confirmation; integration summary strip |
 | SIEM Integration Configuration | `/audit-log` | Splunk HEC config form (endpoint URL, HEC token with show/hide, index, source, sourcetype, format, batch size, SSL verify, enabled toggle); accessible via gear icon or "Configure →" link in the SIEM Push modal; config held in React state and reflected immediately |
-| Policy Engine — list | `/policy-engine` | Sortable table of all policies with violation counts |
+| Policy Engine — list | `/policy-engine` | Sortable table of all policies with violation counts and inline rule summary |
 | Policy Engine — toggle | `/policy-engine` | Enable/disable individual policies via API |
-| Policy Engine — create | `/policy-engine` | Form to create new policies with name, description, severity |
+| Policy Engine — create | `/policy-engine` | PolicyBuilder form with structured rule editor: field → operator → value → action; produces `rule_config` JSON |
+| Policy Engine — edit | `/policy-engine` | Pencil icon opens PolicyBuilder pre-filled with existing policy and rule condition |
+| Policy Engine — delete | `/policy-engine` | Trash icon with inline confirmation (Delete? Yes / Cancel); calls `DELETE /api/v1/policies/:id` |
+| Policy Engine — page description | `/policy-engine` | Full-width description card with 4 feature tiles (enforcement, severity, enable/disable, violation tracking) |
 | Board Report Builder | `/board-reports` | 2-step wizard: configure period/scope → preview report with AI summaries |
 | Board Report — AI section summaries | `/board-reports` | Claude auto-generates executive, compliance, performance, and risk prose on Step 2 load |
 | Board Report — AI assistant | `/board-reports` | Free-text prompt adds custom governed content to the report; topic guard rejects off-scope requests |
@@ -63,29 +66,144 @@ Current state as of May 2026. Covers what is built, what is scaffolded but incom
 
 ## Planned but not started
 
-### High priority
+Features are grouped into three priority tiers. Within each tier they are ordered by recommended build sequence.
 
-**Real-time alert stream**  
-Replace the 30-second poll on `useAlerts` with a WebSocket connection. Redis pub-sub is already running (`aitc_redis`). The Go API would need a WebSocket handler that publishes new `blocked`/`flagged` events as they arrive.
+---
+
+### Priority 1 — High impact, low–medium effort
+
+These close the most visible gaps in the prototype and are the best candidates for the next sprint.
+
+---
+
+**Regulatory Compliance Mapper**  
+A dedicated view that maps each active policy to one or more regulatory frameworks (GDPR, ISO 42001, EU AI Act, SOC 2). Each framework would show which policies cover it, coverage percentage, and a gap list for uncovered requirements. The policy table already has severity and rule_config; the mapper only needs a static mapping table (policy → regulation tags) and a summary view. This is the most compelling feature to add for a governance demo because it turns a list of technical rules into a business-legible compliance posture.
+
+*Effort: 1–2 days frontend + minor API change*
+
+---
+
+**Policy Simulation (dry-run mode)**  
+A "Test Policy" button in the PolicyBuilder that sends the current rule_config to the API alongside a sample audit event payload and returns what outcome the engine would produce — block / flag / allow — without actually persisting anything. This makes it safe to experiment with new rules before enabling them. Requires a new `POST /api/v1/policies/simulate` endpoint in Go that evaluates rule_config against a submitted event.
+
+*Effort: 2–3 days (Go endpoint + React UI)*
+
+---
+
+**Real-time Alert Toasts**  
+Upgrade `useAlerts` from a 30-second poll to a WebSocket push. New `blocked` or `flagged` events would appear as a slide-in toast in the bottom-right corner with a link to open the audit event drawer. Redis pub-sub is already running (`aitc_redis`). Requires a Go WebSocket handler and a small React toast component. Adds genuine liveness to the dashboard.
+
+*Effort: 2–3 days (Go WS handler + React toast)*
+
+---
+
+**Cost & Usage Tracking**  
+A new KPI card (and optionally a sub-page) that shows estimated API cost per model, token usage breakdown, and inference volume by module (Autopilot / Copilot / Mpower Agent) over the last 7 and 30 days. Data can be approximated from `audit_events` (model_name + event_type = inference). This is a frequent ask in AI governance reviews.
+
+*Effort: 1 day frontend (dashboard card) + 1 day API aggregation query*
+
+---
+
+### Priority 2 — Medium impact, medium effort
+
+Meaningful additions that require more infrastructure or cross-cutting changes.
+
+---
+
+**Access Controls (RBAC)**  
+The `/access-controls` page exists as a shell but is disabled in the nav. Build out user and role management: list users, assign roles (Admin / Analyst / Viewer), control which pages and actions each role can perform. Requires a `users` + `roles` table, a session/token concept, and middleware in Go to enforce permissions. This is the most credible path to a multi-user demo.
+
+*Effort: 3–5 days end-to-end*
+
+---
+
+**Policy Approval Workflow**  
+Add a "Pending Approval" state to policies. When a non-admin creates or edits a policy, it enters a draft state rather than becoming active immediately. An admin sees a badge on the Policy Engine nav item and an approval queue at the top of the policy list. Requires a `status` column on policies (`active`, `draft`, `pending`, `rejected`) and simple Go logic to transition states.
+
+*Effort: 2–3 days*
+
+---
+
+**Saved Audit Log Filters**  
+A "Save this filter" button in the Audit Log filter bar that persists the current filter combination (event type, outcome, date range, model) to localStorage or a user preferences table. Saved filters appear as chips below the filter bar for one-click restore. Useful in demos to quickly jump between scenarios.
+
+*Effort: 1 day frontend (localStorage); 2 days if persisted to API*
+
+---
+
+**Policy Version History**  
+Track every change to a policy (name, description, severity, rule_config, enabled) in an `audit_trail` or `policy_versions` table. A "History" icon in the policy list Actions column opens a drawer showing a chronological changelog with diffs. Requires a Go trigger or explicit versioning on every PUT.
+
+*Effort: 2–3 days*
+
+---
+
+### Priority 3 — Lower priority / stretch goals
+
+High-value but more complex, or dependent on Priority 1/2 features being in place first.
+
+---
+
+**Global Search (⌘K)**  
+A command-palette overlay (keyboard shortcut ⌘K / Ctrl+K) that searches across policies, audit events, models, and agents simultaneously and navigates directly to results. Provides a fast, power-user experience and is highly demo-friendly.
+
+*Effort: 2–3 days (UI only if backed by existing API endpoints)*
+
+---
+
+**Scheduled Board Reports**  
+Extend the Board Report Builder with a scheduling step: choose frequency (weekly / monthly) and delivery method (download link / email). The Go API would need a cron job or a `pg_cron` task to generate the report and persist it. Combined with the audit certificate, this would make board-level compliance reporting fully automated.
+
+*Effort: 3–5 days*
+
+---
+
+**Comparative Analytics**  
+Side-by-side comparison of two time periods, two models, or two modules on the Governance Dashboard. Adds a "Compare" mode toggle that splits the trend chart and KPI cards into two columns. Requires no new API endpoints — only aggregation parameters already supported.
+
+*Effort: 2 days frontend*
+
+---
+
+**Anomaly Detection**  
+A background job that identifies unusual patterns in audit events (e.g. sudden spike in blocked events for a specific model, confidence score dropping below historical baseline) and surfaces them as high-priority alerts. Would use simple statistical thresholds rather than ML, making it buildable without an ML pipeline.
+
+*Effort: 3–5 days (Go background job + alert integration)*
+
+---
+
+### Recommended execution order
+
+| # | Feature | Priority | Est. effort | Reason |
+|---|---|---|---|---|
+| 1 | Regulatory Compliance Mapper | P1 | 1–2 days | Highest demo value; closes biggest narrative gap |
+| 2 | Policy Simulation | P1 | 2–3 days | Makes the Policy Engine interactive and safe to demo |
+| 3 | Real-time Alert Toasts | P1 | 2–3 days | Adds liveness; Redis already in place |
+| 4 | Cost & Usage Tracking | P1 | 2 days | Frequently requested; uses existing data |
+| 5 | Access Controls (RBAC) | P2 | 3–5 days | Required before multi-user scenarios |
+| 6 | Saved Audit Filters | P2 | 1–2 days | Quick win; improves demo flow |
+| 7 | Policy Approval Workflow | P2 | 2–3 days | Adds governance depth |
+| 8 | Policy Version History | P2 | 2–3 days | Supports audit / change-control narrative |
+| 9 | Global Search (⌘K) | P3 | 2–3 days | Polish; good for live walkthroughs |
+| 10 | Comparative Analytics | P3 | 2 days | Lightweight but impactful visually |
+| 11 | Scheduled Board Reports | P3 | 3–5 days | Requires cron infrastructure |
+| 12 | Anomaly Detection | P3 | 3–5 days | Most complex; best left until core is stable |
+
+---
+
+### Infrastructure / foundation
 
 **Policy rule evaluation**  
-Policies currently exist only as stored configuration — they are not evaluated against incoming audit events. A policy evaluation engine would check each event against enabled policies at ingestion time and populate `policy_violations` accordingly.
+Policies store `rule_config` but this is never executed against incoming events. A policy evaluation engine in Go would check each new audit event against all enabled policies at ingestion time and populate `policy_violations`. This is a prerequisite for Policy Simulation (#2 above) and Anomaly Detection (#12).
+
+**Real-time alert stream (WebSocket infrastructure)**  
+The `hooks/useWebSocket.ts` and `lib/websocket-client.ts` stubs exist. Building the Go WebSocket handler and wiring Redis pub-sub is the enabler for Real-time Alert Toasts (#3 above).
 
 **Authentication**  
-Currently there is no auth layer. All requests use the seed tenant ID. See `Documentation/Security.md` for the full gap analysis.
-
-### Medium priority
-
-**AI Agent Monitor**  
-Per-agent confidence score trends, override rates, and recommendation history. Would require either a dedicated `agents` table or aggregating `agent_id` groupings from `audit_events`.
-
-### Lower priority
+Currently all requests use the seed tenant ID with no auth layer. A token/session system is a prerequisite for Access Controls (#5 above). See `Documentation/Security.md` for the full gap analysis.
 
 **ClickHouse analytics integration**  
-ClickHouse is running (`aitc_clickhouse`) but nothing writes to it. For analytics-scale queries (e.g. million-row audit log aggregations, complex time-series analysis) the Go API would need a separate ClickHouse repository layer.
-
-**Regulations filter**  
-Wire the existing "All Regulations" dropdown in the audit log filter bar to the API. Would require adding a `regulation` column or tag to `audit_events`, or mapping policy violation names to regulation labels.
+ClickHouse is running (`aitc_clickhouse`) but nothing writes to it. Required before analytics-scale queries (millions of rows, complex time-series) become practical. Not needed until the prototype outgrows PostgreSQL aggregation.
 
 ---
 
@@ -100,6 +218,6 @@ Wire the existing "All Regulations" dropdown in the audit log filter bar to the 
 | Hardcoded values | "AI Decisions Today" (62,847), "Compliance Coverage" (100%), "decisions_today" in summarise payload are static strings |
 | SIEM push is simulated | No real syslog/SIEM endpoint — the push confirmation is UI-only |
 | Alert acknowledgement is in-memory | Refreshing the page resets acknowledged state |
-| Policy rules not evaluated | `rule_config` is stored but never executed against events |
+| Policy rules not evaluated | `rule_config` is stored and validated client-side but never executed against live events at ingestion time |
 | Board Report PDF via browser print | No server-side PDF generation — layout is browser-dependent |
 | Model Registry POST endpoint | `POST /api/v1/models` may not be implemented in the Go API; the mutation will fail until the handler exists |
