@@ -37,7 +37,6 @@ export default function AiAgentsPage() {
     <div className="space-y-5">
       <PageHeader
         title="Agent Trust Panel"
-        description="Per-agent trust scores, block rates, and policy violation patterns"
         actions={
           <div className="flex items-center gap-2">
             <select
@@ -53,6 +52,18 @@ export default function AiAgentsPage() {
           </div>
         }
       />
+
+      {/* Page description */}
+      <div className="rounded-lg border border-[#E5E7EB] bg-[#F9FAFB]" style={{ padding: '14px 18px' }}>
+        <p className="text-[13px] text-[#374151] leading-relaxed">
+          This panel shows governance health for every AI agent active in the selected period, derived from audit event data.
+          Each agent is assigned a <span className="font-semibold text-[#111827]">Trust Score</span> (0–100) computed from three weighted signals:
+          how often the agent&apos;s actions are <span className="font-semibold text-[#16A34A]">allowed</span> (50%),
+          its average <span className="font-semibold text-[#111827]">confidence score</span> (35%),
+          and the proportion of events with <span className="font-semibold text-[#111827]">no policy violations</span> (15%).
+          Scores below 70% are flagged as high-risk. Click any row to open the full agent detail — outcome breakdown, top violations, and recent sessions.
+        </p>
+      </div>
 
       {/* Fleet KPI chips */}
       <div className="flex gap-3">
