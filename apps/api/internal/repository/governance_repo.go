@@ -28,12 +28,24 @@ func (r *GovernanceRepo) GetMetrics(ctx context.Context, tenantID string, days i
 		return nil, fmt.Errorf("active policies: %w", err)
 	}
 
+	// Total inferences within the selected window
+	err = r.db.QueryRow(ctx,
+		`SELECT COUNT(*)
+		 FROM audit_events
+		 WHERE tenant_id = $1
+		   AND event_time >= NOW() - $2 * INTERVAL '1 day'`,
+		tenantID, days,
+	).Scan(&metrics.TotalInferences)
+	if err != nil {
+		return nil, fmt.Errorf("total inferences: %w", err)
+	}
+
 	// Policy violations within the selected window
 	err = r.db.QueryRow(ctx,
 		`SELECT COUNT(*)
 		 FROM audit_events
 		 WHERE tenant_id = $1
-		   AND event_time >= NOW() - ($2 || ' days')::INTERVAL
+		   AND event_time >= NOW() - $2 * INTERVAL '1 day'
 		   AND jsonb_array_length(policy_violations) > 0`,
 		tenantID, days,
 	).Scan(&metrics.PolicyViolations24h)
@@ -59,10 +71,10 @@ func (r *GovernanceRepo) GetMetrics(ctx context.Context, tenantID string, days i
 		return nil, fmt.Errorf("governance score: %w", err)
 	}
 
-	// Trend: bucket by day for ≤7 days, by week otherwise
+	// Trend: daily buckets for ≤30 days, weekly for 90 days
 	bucket := "week"
 	dateFmt := "Mon DD"
-	if days <= 7 {
+	if days <= 30 {
 		bucket = "day"
 		dateFmt = "Mon DD"
 	}
@@ -73,7 +85,7 @@ func (r *GovernanceRepo) GetMetrics(ctx context.Context, tenantID string, days i
 			ROUND(AVG(confidence_score) * 100, 1) AS score
 		 FROM audit_events
 		 WHERE tenant_id = $1
-		   AND event_time >= NOW() - ($2 || ' days')::INTERVAL
+		   AND event_time >= NOW() - $2 * INTERVAL '1 day'
 		 GROUP BY date_trunc($3, event_time)
 		 ORDER BY date_trunc($3, event_time)`,
 		tenantID, days, bucket, dateFmt,
@@ -113,7 +125,7 @@ func (r *GovernanceRepo) GetModelHealth(ctx context.Context, tenantID string, da
 		 FROM ai_models m
 		 LEFT JOIN audit_events ae
 			ON ae.model_id = m.id
-			AND ae.event_time >= NOW() - ($2 || ' days')::INTERVAL
+			AND ae.event_time >= NOW() - $2 * INTERVAL '1 day'
 		 WHERE m.tenant_id = $1
 		 GROUP BY m.id
 		 ORDER BY m.governance_score DESC`,
@@ -160,7 +172,7 @@ func (r *GovernanceRepo) GetAlerts(ctx context.Context, tenantID string, limit i
 		 LEFT JOIN ai_models m ON m.id = ae.model_id
 		 WHERE ae.tenant_id = $1
 		   AND (ae.outcome = 'blocked' OR jsonb_array_length(ae.policy_violations) > 0)
-		   AND ae.event_time >= NOW() - ($3 || ' days')::INTERVAL
+		   AND ae.event_time >= NOW() - $3 * INTERVAL '1 day'
 		 ORDER BY ae.event_time DESC
 		 LIMIT $2`,
 		tenantID, limit, days,

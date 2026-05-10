@@ -116,10 +116,10 @@ export default function GovernanceDashboard() {
         ) : (
           <>
             <KpiCard
-              title="AI Decisions Today"
-              value="62,847"
+              title={`AI Decisions (${days}d)`}
+              value={(data?.total_inferences ?? 0).toLocaleString()}
               trend="up"
-              delta="+8.3% vs yesterday"
+              delta={`Last ${days} days`}
               accentGradient="linear-gradient(90deg,#2563EB,#60A5FA)"
               iconBg="#EFF6FF"
               icon={<svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#2563EB" strokeWidth="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>}
@@ -135,7 +135,7 @@ export default function GovernanceDashboard() {
               icon={<svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#16A34A" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>}
             />
             <KpiCard
-              title="Policy Violations (7d)"
+              title={`Policy Violations (${days}d)`}
               value={data ? String(data.policy_violations_24h) : '3'}
               trend="down"
               delta="+1 vs prior period"

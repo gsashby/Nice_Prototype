@@ -45,6 +45,7 @@ type GovernanceMetrics struct {
 	ActivePolicies      int64            `json:"active_policies"`
 	PolicyViolations24h int64            `json:"policy_violations_24h"`
 	ModelsMonitored     int64            `json:"models_monitored"`
+	TotalInferences     int64            `json:"total_inferences"`
 	Trend               []ScoreDataPoint `json:"trend"`
 }
 
