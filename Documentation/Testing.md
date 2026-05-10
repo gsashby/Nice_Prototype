@@ -1,6 +1,6 @@
 # Testing Guide
 
-The test suite lives entirely in `tests/` at the repository root and is split into two tiers: **unit tests** (fast, no external services) and **system tests** (integration tests that hit the live API).
+The test suite lives entirely in `tests/` at the repository root and is split into two tiers: **unit tests** (fast, no external services) and **system tests** (integration tests that hit the live API). System tests include both functional end-to-end coverage and application security tests.
 
 ```
 tests/
@@ -17,7 +17,8 @@ tests/
 │       └── useSortable.test.ts
 └── system/
     ├── go.mod
-    └── api_test.go                # End-to-end integration tests against localhost:8080
+    ├── api_test.go                # End-to-end integration tests against localhost:8080
+    └── security_test.go           # Application security tests against localhost:8080
 ```
 
 ---
@@ -161,8 +162,8 @@ Tests the core sorting algorithm from `apps/web/src/lib/useSortable.ts`. Because
 **Module:** `github.com/nice-cx/ai-trust-center/tests/system`  
 **Runner:** `go test`  
 **Requires:** Docker services running + Go API on `:8080` + seeded data  
-**Count:** 33 tests  
-**Timeout:** 30 seconds (all tests complete in under 1 second against local services)
+**Count:** 59 tests (33 functional + 26 security)  
+**Timeout:** 60 seconds (all tests complete in under 2 seconds against local services)
 
 System tests make real HTTP requests to the API and assert on response status codes, JSON shapes, field values, and filter behaviour. They are the primary verification layer for the full request → handler → database → response path.
 
@@ -171,9 +172,13 @@ System tests make real HTTP requests to the API and assert on response status co
 npm run db:up
 cd apps/api && make run &
 
-# Run system tests
+# Run all system tests (functional + security)
 cd tests/system
-go test ./... -v -timeout 30s
+go test ./... -v -timeout 60s
+
+# Run only security tests
+cd tests/system
+go test ./... -v -timeout 60s -run "TestSecurity"
 ```
 
 ### Test coverage by endpoint
@@ -238,6 +243,110 @@ go test ./... -v -timeout 30s
 
 ---
 
+## Security tests (`tests/system/security_test.go`)
+
+**Count:** 26 tests  
+**File:** `tests/system/security_test.go`
+
+Security tests run in the same `system_test` package as the functional system tests and share the same HTTP helpers. They verify the API's behaviour against common attack vectors and confirm that the security properties documented in [Security.md](Security.md) are enforced at runtime.
+
+The file adds two helpers not present in `api_test.go`:
+
+- `rawRequest(t, method, path, body, headers)` — executes any HTTP method and returns the full `*http.Response`, giving tests direct access to status codes and response headers without JSON decoding.
+- `putJSON(t, path, body)` — sends a `PUT` request with a JSON body and decodes the response, following the same pattern as `postJSON` and `patchJSON`.
+
+### SQL injection resistance (3 tests)
+
+The audit-log repository builds queries using pgx parameterised placeholders (`$1`, `$2`, …). These tests confirm that injected SQL is passed as a literal string value — queries return 200 with empty or normal results, never a 500.
+
+| Test | Attack vector | Expected outcome |
+|---|---|---|
+| `TestSecurity_SQLi_SearchParam` | `' OR '1'='1'; DROP TABLE audit_events; --` in `search` | 200 — literal string, no rows match |
+| `TestSecurity_SQLi_OutcomeParam` | `' OR '1'='1'` in `outcome` | 200 — no matching outcome, empty events array |
+| `TestSecurity_SQLi_EventTypeParam` | `inference'; DROP TABLE audit_events; --` in `event_type` | Not 500 |
+
+### XSS payload in stored data (1 test)
+
+| Test | What it checks |
+|---|---|
+| `TestSecurity_XSS_PolicyName_StoredAsPlainText` | A `<script>alert('xss')</script>` payload in a policy name round-trips as a plain JSON string — the API neither strips nor encodes it |
+
+The API is JSON-only with no HTML rendering surface. This test documents the correct behaviour: content is stored and returned unchanged.
+
+### Oversized inputs (2 tests)
+
+| Test | What it checks |
+|---|---|
+| `TestSecurity_OversizedSearch` | A 10 KB `search` URL param does not return 500 (server may respond with 200, 400, or 414) |
+| `TestSecurity_OversizedRequestBody` | A 500 KB `name` field in a POST body does not return 500 |
+
+### Parameter boundary handling (6 tests)
+
+The audit-log repository clamps `page_size` to `[1, 200]` and `page` to `≥ 1`. Non-numeric values are silently defaulted by `strconv.Atoi`. None of these inputs should trigger a 500.
+
+| Test | Input | Expected outcome |
+|---|---|---|
+| `TestSecurity_PageSize_ExceedsMax` | `page_size=999999` | 200, ≤ 200 events returned (clamped) |
+| `TestSecurity_PageSize_Negative` | `page_size=-1` | 200 |
+| `TestSecurity_PageSize_Zero` | `page_size=0` | 200 |
+| `TestSecurity_PageSize_NonNumeric` | `page_size=abc` | 200 |
+| `TestSecurity_Page_NonNumeric` | `page=abc` | 200 |
+| `TestSecurity_InvalidOutcomeValue` | `outcome=INVALID_OUTCOME` | 200, empty events array |
+
+### HTTP method enforcement (3 tests)
+
+Fiber returns 405 Method Not Allowed when a path is registered but the requested method is not.
+
+| Test | Request | Expected |
+|---|---|---|
+| `TestSecurity_MethodNotAllowed_GovernanceMetrics` | `POST /api/v1/governance/metrics` | 405 |
+| `TestSecurity_MethodNotAllowed_AuditLog` | `DELETE /api/v1/audit-log` | 405 |
+| `TestSecurity_MethodNotAllowed_GovernanceAlerts` | `PUT /api/v1/governance/alerts` | 405 |
+
+### Tenant isolation (3 tests)
+
+The repository scopes every query with `WHERE tenant_id = $1`. A valid-format but unseeded UUID must return empty collections, not rows from another tenant.
+
+| Test | Tenant UUID | Expected |
+|---|---|---|
+| `TestSecurity_Tenant_UnknownUUID_AuditLogEmpty` | `ffffffff-ffff-ffff-ffff-ffffffffffff` | 200, `total=0`, empty events |
+| `TestSecurity_Tenant_UnknownUUID_PoliciesEmpty` | `ffffffff-ffff-ffff-ffff-ffffffffffff` | 200, empty policies |
+| `TestSecurity_Tenant_UnknownUUID_GovernanceModelsEmpty` | `ffffffff-ffff-ffff-ffff-ffffffffffff` | 200, empty models |
+
+### Non-existent resource handling (2 tests)
+
+Operations on a valid-format but non-existent policy UUID must return 404. A 500 would indicate an unhandled error and potential internal detail disclosure.
+
+| Test | Request | Expected |
+|---|---|---|
+| `TestSecurity_PolicyNotFound_Update` | `PUT /api/v1/policies/00000000-…` | 404 |
+| `TestSecurity_PolicyNotFound_Delete` | `DELETE /api/v1/policies/00000000-…` | 404 |
+
+### Response header hygiene (3 tests)
+
+All API responses must declare `Content-Type: application/json`. Missing this header can mislead clients and trigger content-sniffing behaviour.
+
+| Test | Endpoint |
+|---|---|
+| `TestSecurity_ResponseHeaders_ContentType_AuditLog` | `GET /api/v1/audit-log` |
+| `TestSecurity_ResponseHeaders_ContentType_Policies` | `GET /api/v1/policies` |
+| `TestSecurity_ResponseHeaders_ContentType_Governance` | `GET /api/v1/governance/metrics` |
+
+### CORS enforcement (2 tests)
+
+| Test | What it checks |
+|---|---|
+| `TestSecurity_CORS_AllowedOrigin` | Preflight from `http://localhost:3000` receives `Access-Control-Allow-Origin: http://localhost:3000` |
+| `TestSecurity_CORS_DisallowedOrigin` | Preflight from `http://evil.example.com` does not receive that origin in `Access-Control-Allow-Origin` |
+
+### Missing Content-Type (1 test)
+
+| Test | What it checks |
+|---|---|
+| `TestSecurity_MissingContentType_Returns400` | `POST /policies` without `Content-Type` returns 400 — Fiber's BodyParser rejects the request cleanly |
+
+---
+
 ## Adding new tests
 
 ### Go unit test (contract or logic)
@@ -254,14 +363,19 @@ import { myFn } from '../../../apps/web/src/lib/myFn'
 
 The `@/` alias resolves to `apps/web/src/` automatically via `vitest.config.ts`.
 
-### System test
+### System test (functional)
 
 Add test functions to `tests/system/api_test.go` (or create a new `*_test.go` file in the same package `system_test`). Use the `getJSON`, `postJSON`, and `patchJSON` helpers already defined in the file.
+
+### Security test
+
+Add test functions to `tests/system/security_test.go` in package `system_test`. Use `rawRequest` for tests that need to inspect headers or send non-standard methods, and `putJSON` for `PUT` endpoint tests. Follow the naming convention `TestSecurity_<Category>_<Description>`.
 
 ---
 
 ## Notes
 
-- **System tests create real data.** `TestPolicies_Create_*` and `TestPolicies_Toggle_Returns200` insert policies into the database. They use unique timestamped names so repeated runs do not conflict, but the rows are not automatically cleaned up.
+- **System tests create real data.** `TestPolicies_Create_*`, `TestPolicies_Toggle_Returns200`, and `TestSecurity_XSS_PolicyName_StoredAsPlainText` insert policies into the database. They use unique timestamped names so repeated runs do not conflict, but the rows are not automatically cleaned up.
 - **System tests are order-independent.** Each test is self-contained and does not depend on execution order.
 - **The Go unit tests cannot import `apps/api/internal/`** due to Go's `internal` package visibility rules. In-package unit tests for the repository and handler layers live alongside their source files in `apps/api/internal/`.
+- **Security tests use `timeout 60s`** (up from 30s) to accommodate the oversized-body and large-search tests, though all tests complete well within this limit against local services.
