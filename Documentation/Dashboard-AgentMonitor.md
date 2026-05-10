@@ -39,168 +39,216 @@ There is no dedicated `agents` table. All agent data must be aggregated from `au
 
 ---
 
-## Intended page layout
+## Page layout
 
 ```
-┌─ Page header: "AI Agent Monitor" ─────────────────────────────────────┐
-│  [Fleet health KPI chips]  [Time range selector]  [Export CSV button] │
-└────────────────────────────────────────────────────────────────────────┘
-
-┌─ Agent table ──────────────────────────────────────────────────────────┐
+┌─ Page header: "Agent Trust Panel"  [Time range selector] ─────────────┐
+├─ Description block ────────────────────────────────────────────────────┤
+│  Explains trust score formula and how to use the panel                 │
+├─ Fleet KPI chips ──────────────────────────────────────────────────────┤
+│  Active Agents │ Fleet Block Rate │ Fleet Avg Confidence │ High-Risk   │
+├─ Agent table ──────────────────────────────────────────────────────────┤
 │  Search bar                                                            │
-│  Agent ID │ Trust Score │ Events │ Block Rate │ Confidence │ Last Seen │
-│  ──────────────────────────────────────────────────────────────────── │
-│  agent-007 │ ████ 91%   │ 847    │ 2.1%       │ 83.4%      │ 2m ago   │
-│  agent-012 │ ██░░ 43%   │ 312    │ 31.4%      │ 61.2%      │ 1h ago   │
-│  ...                                                                   │
+│  Agent ID │ Trust Score     │ Events │ Sessions │ Block% │ Conf% │ …  │
+│  ─────────────────────────────────────────────────────────────────── │
+│  agent-007 │ ████████ 91.2% Healthy │ 847 │ 43 │ 2.1% │ 83.4% │ …  │
+│  agent-012 │ ████░░░░ 43.0% Critical│ 312 │ 18 │ 31.4%│ 61.2% │ …  │
 └────────────────────────────────────────────────────────────────────────┘
 
 ┌─ Agent detail drawer (slide-in on row click) ──────────────────────────┐
 │  agent-012                                                             │
-│  Trust Score: 43% ▼ Critical                                          │
+│  43 events · 18 sessions · last seen 2 hours ago                      │
 │                                                                        │
-│  [Confidence trend chart — last 7d]                                   │
-│  [Outcome breakdown: allowed / flagged / blocked bar]                 │
-│  [Top policy violations list]                                         │
-│  [Recent sessions table]                                              │
-│  [View all events in Audit Log →]                                     │
+│  Trust Score ──────────────────────────────────────────────────────── │
+│  43.0%  Critical  [████░░░░░░░░░░░░░░░░░░░░░░]                        │
+│  Based on allow rate (50%), avg confidence (35%), violation-free (15%)│
+│                                                                        │
+│  Outcome Breakdown ─────────────────────────────────────────────────  │
+│  [████████████░░░░░░████████████]                                      │
+│  ● Allowed 22 (51%)  ● Flagged 8 (19%)  ● Blocked 13 (30%)           │
+│                                                                        │
+│  Key Metrics ───────────────────────────────────────────────────────  │
+│  Block Rate: 30.2%  Avg Confidence: 61.2%  Violations: 7  Sessions: 18│
+│                                                                        │
+│  Top Policy Violations ─────────────────────────────────────────────  │
+│  [Confidence Floor ×5] [Bias Threshold ×2]                            │
+│                                                                        │
+│  Recent Sessions ───────────────────────────────────────────────────  │
+│  sess-abc │ 4 events │ blocked │ May 9 14:22                          │
+│  ...                                                                   │
+│                                                                        │
+│  [Close]                           [View All Events →]                │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Fleet health KPI chips
+## Description block
 
-Four headline metrics across all agents for the selected time period:
-
-| KPI | Calculation |
-|---|---|
-| Active Agents | Distinct `agent_id` values with at least one event in the period |
-| Fleet Block Rate | `COUNT(*) WHERE outcome = 'blocked' / COUNT(*)` across all agents |
-| Fleet Avg Confidence | `AVG(confidence_score)` across all events |
-| High-Risk Agents | Count of agents with trust score < 70 % |
+A plain-text paragraph rendered between the page header and the KPI chips. Explains:
+- What a Trust Score is and how it is computed (the three weighted inputs)
+- The <70% high-risk threshold
+- How to use the page (click a row to open the detail drawer)
 
 ---
 
-## Agent table
+## Fleet KPI chips
 
-One row per distinct `agent_id`. Sortable on all numeric columns, searchable by agent ID substring.
+Four chips derived client-side from all agent summaries for the selected period:
 
-| Column | Source | Notes |
+| KPI | Calculation | Colour |
 |---|---|---|
-| Agent ID | `agent_id` | Monospaced; clicking opens detail drawer |
-| Trust Score | Derived (see below) | Colour-coded bar: green ≥ 85 %, amber ≥ 70 %, red < 70 % |
-| Events | `COUNT(*)` | Total events in selected period |
-| Sessions | `COUNT(DISTINCT session_id)` | Unique sessions |
-| Block Rate | `COUNT WHERE outcome = 'blocked' / COUNT(*)` | Formatted as `X.X%` |
-| Avg Confidence | `AVG(confidence_score)` | Formatted as `XX.X%` |
-| Violations | `SUM(array_length(policy_violations, 1))` | Total policy violations |
-| Last Seen | `MAX(event_time)` | Relative time ("3m ago", "2h ago") |
+| Active Agents | Count of distinct `agent_id` values | Neutral |
+| Fleet Block Rate | Total blocked events / total events across all agents | Red ≥ 10%, Amber ≥ 5%, Green otherwise |
+| Fleet Avg Confidence | Weighted mean of `avg_confidence` (weighted by event count) | Green ≥ 85%, Amber ≥ 70%, Red otherwise |
+| High-Risk Agents | Count of agents with trust score < 70% | Red if > 0, Gray if 0 |
+
+Each chip includes a subtitle: "Active Agents" shows the event sample size; "High-Risk Agents" shows `"trust score < 70%"`.
+
+---
+
+## Agent table (`AgentTable`)
+
+One row per distinct `agent_id` found in the sampled events. Sortable on all columns via `useSortable`; searchable by agent ID substring.
+
+| Column | Source | Display |
+|---|---|---|
+| Agent ID | `agent_id` | Monospace bold; clicking opens the detail drawer |
+| Trust Score | Computed (see below) | Progress bar + coloured percentage + Healthy/Watch/Critical badge |
+| Events | `total_events` | Locale-formatted integer |
+| Sessions | `session_count` | Distinct `session_id` values in the agent's events |
+| Block Rate | `block_rate` | `X.X%`, coloured red ≥ 15%, amber ≥ 5%, gray otherwise |
+| Avg Conf. | `avg_confidence` | `XX.X%`, coloured green ≥ 85%, amber ≥ 70%, red otherwise |
+| Violations | `total_violations` | Red pill badge when > 0; plain `0` otherwise |
+| Last Seen | `last_seen` | Relative time via `date-fns` `formatDistanceToNow` |
 
 ### Trust Score formula
 
-A synthetic 0–100 score computed server-side from three weighted inputs:
+Computed client-side in `useAgents` from the sampled events for each agent:
 
 ```
 trust_score = (allow_rate × 0.50)
             + (avg_confidence × 0.35)
             + (no_violation_rate × 0.15)
+            × 100
 ```
 
-Where:
-- `allow_rate` = `allowed_count / total_count` (0–1)
-- `avg_confidence` = mean `confidence_score` (0–1)
-- `no_violation_rate` = `events_with_zero_violations / total_count` (0–1)
-
-Thresholds match governance score conventions elsewhere in the platform: **Healthy ≥ 85 %, Watch ≥ 70 %, Critical < 70 %**.
-
----
-
-## Agent detail drawer
-
-Opens on row click. Contains four sections:
-
-### 1. Confidence trend (line chart)
-
-`confidence_score` bucketed into daily averages for the selected period using Recharts `LineChart` — the same component pattern as the Governance Dashboard trend chart. Y-axis: 0–100 %. Reference line at 70 % (minimum acceptable threshold).
-
-### 2. Outcome breakdown
-
-Stacked bar showing `allowed` / `flagged` / `blocked` counts for the agent. Colours match the existing outcome badge palette (green / amber / red).
-
-### 3. Top policy violations
-
-The five most-triggered policy names for this agent, with occurrence count and percentage of total events. Derived by unnesting `policy_violations` JSONB arrays and grouping by violation name.
-
-### 4. Recent sessions
-
-Last 10 sessions (`GROUP BY session_id ORDER BY MAX(event_time) DESC`):
-
-| Column | Source |
+| Input | Definition |
 |---|---|
-| Session ID | `session_id` (truncated, monospaced) |
-| Events | `COUNT(*)` |
-| Outcome | Worst outcome in session (blocked > flagged > allowed) |
-| Duration | `MAX(event_time) - MIN(event_time)` |
-| Started | `MIN(event_time)` |
+| `allow_rate` | `allowed_count / total_events` |
+| `avg_confidence` | Mean of `confidence_score` across the agent's events |
+| `no_violation_rate` | Events where `policy_violations.length === 0` / `total_events` |
 
-Clicking a session ID navigates to `/audit-log?search={session_id}`, using the existing search filter that matches `session_id ILIKE '%{value}%'` in the Go API.
-
-### Footer
-
-**"View all events in Audit Log"** — navigates to `/audit-log?search={agent_id}`, filtering to that agent's full history.
+Thresholds: **Healthy ≥ 85%, Watch ≥ 70%, Critical < 70%** — matching conventions across the platform.
 
 ---
 
-## Implementation notes (built)
+## Agent detail drawer (`AgentDetailDrawer`)
 
-All data is derived client-side by fetching up to 200 audit events via `useAuditLog` (the Go API's max page size) and grouping by `agent_id`. The `useAgents` hook returns both the per-agent summaries and the fleet-wide aggregates.
+Opens on row click; closes on Escape, backdrop click, or Close button.
 
-**Limitation:** Only the 200 most-recent events are fetched per period. For time periods with high event volume this means older events are not represented. A dedicated Go API endpoint aggregating via SQL `GROUP BY` would give complete counts.
+### 1. Trust Score gauge
 
-**Time period selector:** Converts the dropdown value to a `startDate` ISO string using `date-fns` `subDays` / `startOfDay`. Options: Last 7 Days, Last 30 Days, All Time.
+Progress bar from 0–100% with colour-coded fill (green/amber/red). Shows the score percentage, Healthy/Watch/Critical badge, and a subtitle explaining the formula weights.
 
-**Session links:** Clicking a session row in the drawer navigates to `/audit-log?search={session_id}`. Clicking "View All Events" navigates to `/audit-log?search={agent_id}`. Both use the existing `search` ILIKE filter which matches against `session_id` and `agent_id`.
+### 2. Outcome breakdown bar
+
+A proportional horizontal bar divided into green (allowed), amber (flagged), and red (blocked) segments. Below the bar: a three-item legend with event counts and percentages.
+
+### 3. Key metrics
+
+A label/value grid showing:
+- Block Rate (coloured by threshold)
+- Avg Confidence (coloured by threshold)
+- Total Violations
+- Session Count
+
+### 4. Top policy violations
+
+Up to 6 most-frequent violation names aggregated from `policy_violations` arrays across all the agent's events. Each renders as a red pill badge with a small count bubble. Section hidden if the agent has no violations.
+
+### 5. Recent sessions
+
+Last 8 sessions derived from the agent's events, sorted descending by start time. Columns: Session ID (truncated to 16 chars, monospace), Events, Worst Outcome badge, Started (formatted date/time). Clicking a session row navigates to `/audit-log?search={session_id}` and closes the drawer.
+
+### Footer actions
+
+- **Close** — dismisses the drawer
+- **View All Events** — navigates to `/audit-log?search={agent_id}`, filtering the full audit log to this agent's history
 
 ---
 
-## What could be improved (server-side)
+## Data hook — `useAgents`
 
-### Go API — recommended endpoints
+**File:** `apps/web/src/hooks/useAgents.ts`
 
-#### `GET /api/v1/agents`
-
-Returns per-agent aggregates for the selected period. Feeds the agent table and fleet KPI chips.
-
-Query params: `start_date`, `end_date`, `tenant_id`
-
-```json
-{
-  "agents": [
-    {
-      "agent_id": "agent-007",
-      "trust_score": 91.2,
-      "total_events": 847,
-      "total_sessions": 43,
-      "allowed_count": 829,
-      "flagged_count": 12,
-      "blocked_count": 6,
-      "block_rate": 0.0071,
-      "avg_confidence": 0.834,
-      "total_violations": 18,
-      "last_seen": "2026-05-09T14:22:00Z"
-    }
-  ],
-  "fleet": {
-    "active_agents": 18,
-    "fleet_block_rate": 0.041,
-    "fleet_avg_confidence": 0.791,
-    "high_risk_count": 3
-  }
+```ts
+function useAgents(startDate?: string): {
+  agents: AgentSummary[];
+  fleet: FleetSummary | null;
+  isLoading: boolean;
+  isError: boolean;
+  eventTotal: number;   // raw total from the API (may exceed 200)
 }
+
+type AgentSummary = {
+  agent_id: string;
+  trust_score: number;       // 0–100
+  total_events: number;
+  allowed_count: number;
+  flagged_count: number;
+  blocked_count: number;
+  block_rate: number;        // 0–1
+  avg_confidence: number;    // 0–1
+  total_violations: number;
+  session_count: number;
+  last_seen: string;         // ISO 8601
+  events: AuditEvent[];      // raw events for this agent (used by drawer)
+};
+
+type FleetSummary = {
+  active_agents: number;
+  fleet_block_rate: number;       // 0–1
+  fleet_avg_confidence: number;   // 0–1
+  high_risk_count: number;
+};
 ```
 
-SQL backbone:
+Fetches `GET /api/v1/audit-log` with `page=1, page_size=200` and an optional `startDate`. Groups events by `agent_id` using `useMemo`. Trust score, fleet aggregates, and all derived metrics are computed in the memo — no extra API calls.
+
+---
+
+## Component reference
+
+| Component | File | Purpose |
+|---|---|---|
+| `AiAgentsPage` | `ai-agents/page.tsx` | Page layout, period state, description block, KPI chips |
+| `AgentTable` | `components/agent-monitor/AgentTable.tsx` | Searchable, sortable table with trust score bars |
+| `AgentDetailDrawer` | `components/agent-monitor/AgentDetailDrawer.tsx` | Slide-in drawer: gauge, outcome bar, violations, sessions |
+
+---
+
+## Data dependencies
+
+| Hook | API endpoint | Used by |
+|---|---|---|
+| `useAgents(startDate?)` | `GET /api/v1/audit-log?page_size=200` | All page data — agents, fleet KPIs |
+
+---
+
+## Known limitations
+
+| Limitation | Impact |
+|---|---|
+| 200-event sample cap | The Go API clamps `page_size` to 200. For busy periods this means only the most-recent 200 events are analysed — agents with older events may show incomplete metrics |
+| No confidence trend chart | Requires time-bucketed data across multiple days; not available without a dedicated API endpoint or multiple sequential fetches |
+| Client-side aggregation cost | Grouping 200 events in `useMemo` is negligible, but this approach does not scale to thousands of events per period |
+
+---
+
+## Future improvement — dedicated Go API endpoint
+
+A `GET /api/v1/agents` endpoint using `GROUP BY agent_id` in SQL would eliminate the 200-event cap and compute all metrics server-side far more efficiently. The SQL backbone would be:
 
 ```sql
 SELECT
@@ -214,119 +262,9 @@ SELECT
   MAX(event_time)                                    AS last_seen
 FROM audit_events
 WHERE tenant_id = $1
-  AND event_time BETWEEN $2 AND $3
+  AND event_time >= $2
 GROUP BY agent_id
 ORDER BY total_events DESC;
 ```
 
-Trust score, `block_rate`, and `total_violations` are computed in Go from the raw aggregates. Policy violation unnesting uses `jsonb_array_elements_text(policy_violations)` in a separate query per agent (or a lateral join for the top-5 violations).
-
----
-
-#### `GET /api/v1/agents/:id/sessions`
-
-Returns session-level aggregates for a single agent. Feeds the detail drawer sessions table.
-
-```json
-{
-  "sessions": [
-    {
-      "session_id": "sess-abc123",
-      "event_count": 14,
-      "worst_outcome": "blocked",
-      "started_at": "2026-05-09T12:00:00Z",
-      "ended_at": "2026-05-09T12:04:22Z",
-      "duration_seconds": 262
-    }
-  ]
-}
-```
-
----
-
-#### `GET /api/v1/agents/:id/trend`
-
-Returns daily-bucketed confidence and event counts. Feeds the drawer trend chart. Uses TimescaleDB `time_bucket('1 day', event_time)` for efficient partitioned aggregation.
-
-```json
-{
-  "trend": [
-    {
-      "date": "2026-05-03",
-      "avg_confidence": 0.81,
-      "event_count": 42,
-      "block_count": 2
-    }
-  ]
-}
-```
-
----
-
-### Frontend — new hooks
-
-**`useAgents(filters)`** — `apps/web/src/hooks/useAgents.ts`
-
-```ts
-type AgentFilters = { startDate?: string; endDate?: string };
-
-type AgentSummary = {
-  agent_id: string;
-  trust_score: number;
-  total_events: number;
-  total_sessions: number;
-  allowed_count: number;
-  flagged_count: number;
-  blocked_count: number;
-  block_rate: number;
-  avg_confidence: number;
-  total_violations: number;
-  last_seen: string;
-};
-
-type FleetSummary = {
-  active_agents: number;
-  fleet_block_rate: number;
-  fleet_avg_confidence: number;
-  high_risk_count: number;
-};
-
-// Calls: GET /api/v1/agents
-// Query key: ['agents', filters]
-// Refetch interval: 60 seconds
-```
-
-**`useAgentSessions(agentId)`** — calls `GET /api/v1/agents/:id/sessions`. Only fetches when a drawer is open (`enabled: !!agentId`).
-
-**`useAgentTrend(agentId)`** — calls `GET /api/v1/agents/:id/trend`. Only fetches when a drawer is open.
-
----
-
-### Frontend — new components
-
-| Component | File | Purpose |
-|---|---|---|
-| `AgentMonitorPage` | `ai-agents/page.tsx` | Page layout, time range state, KPI chips, orchestration |
-| `AgentTable` | `components/agent-monitor/AgentTable.tsx` | Searchable, sortable table with trust score bars |
-| `AgentDetailDrawer` | `components/agent-monitor/AgentDetailDrawer.tsx` | Slide-in drawer with all four sub-sections |
-| `AgentTrendChart` | `components/agent-monitor/AgentTrendChart.tsx` | Recharts `LineChart` of daily confidence |
-| `AgentOutcomeBar` | `components/agent-monitor/AgentOutcomeBar.tsx` | Stacked bar: allowed / flagged / blocked |
-| `AgentSessionsTable` | `components/agent-monitor/AgentSessionsTable.tsx` | Recent sessions with worst-outcome badge |
-
----
-
-## Implementation notes
-
-**No schema changes required.** All features are derived from `audit_events`. No new tables or migrations needed.
-
-**Time range selector** — reuse the period pattern from the Board Report Builder (`7d / 30d / 90d / custom`), converting to ISO 8601 `start_date` / `end_date` params on the API call.
-
-**Policy violation unnesting** — use `jsonb_array_elements_text(policy_violations)` inside a lateral join or subquery in the Go handler. Aggregate server-side to avoid shipping full event payloads to the frontend.
-
-**Drawer data loading** — trigger `useAgentSessions` and `useAgentTrend` only when the drawer opens (pass `agentId` as the key; use TanStack Query `enabled` option). This avoids pre-fetching all 20 agents' trend data upfront.
-
-**Export CSV** — follows the same `triggerDownload` pattern as `exportAuditLog.ts`. Suggested columns: Agent ID, Trust Score, Events, Sessions, Block Rate, Avg Confidence, Violations, Last Seen.
-
-**Deep-links** — both the detail drawer footer and session row clicks use the existing `/audit-log?search={value}` route. The Go API's search clause already matches `agent_id` and `session_id` via `ILIKE`, so no API changes are needed for deep-linking.
-
-**Recharts reuse** — `AgentTrendChart` can be a thin wrapper around the same `LineChart` / `ResponsiveContainer` pattern already used in `GovernanceScoreChart.tsx`. Pass `data`, `dataKey`, and an optional `referenceLineY` prop.
+Trust score, `block_rate`, `total_violations`, and `no_violation_rate` would be computed in Go from the raw aggregates. No schema changes are required — all data is in `audit_events`.
