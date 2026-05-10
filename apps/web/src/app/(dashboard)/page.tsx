@@ -7,6 +7,7 @@ import KpiCard from '@/components/dashboard/KpiCard';
 import AlertFeed from '@/components/dashboard/AlertFeed';
 import ModelHealthTable from '@/components/dashboard/ModelHealthTable';
 import GovernanceScoreChart from '@/components/dashboard/GovernanceScoreChart';
+import RecommendedActions from '@/components/dashboard/RecommendedActions';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
 import SummaryModal from '@/components/dashboard/SummaryModal';
 import NlqPanel from '@/components/nlq/NlqPanel';
@@ -156,6 +157,12 @@ export default function GovernanceDashboard() {
 
       {/* Bottom row */}
       <ModelHealthTable />
+
+      <RecommendedActions
+        governanceScore={data?.governance_score}
+        policyViolations={data?.policy_violations_24h}
+        alertCount={alertsData?.alerts?.length}
+      />
 
       <SummaryModal
         open={modalOpen}

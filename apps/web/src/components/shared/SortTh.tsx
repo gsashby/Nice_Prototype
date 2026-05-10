@@ -6,6 +6,7 @@ type Props<T> = {
   sort: SortConfig<T>;
   onToggle: (key: keyof T) => void;
   className?: string;
+  tooltip?: string;
 };
 
 function Arrow({ dir, active }: { dir: SortDir; active: boolean }) {
@@ -21,11 +22,12 @@ function Arrow({ dir, active }: { dir: SortDir; active: boolean }) {
   );
 }
 
-export default function SortTh<T>({ label, colKey, sort, onToggle, className = '' }: Props<T>) {
+export default function SortTh<T>({ label, colKey, sort, onToggle, className = '', tooltip }: Props<T>) {
   const isActive = sort?.key === colKey;
   return (
     <th
       onClick={() => onToggle(colKey)}
+      title={tooltip}
       className={`select-none cursor-pointer whitespace-nowrap py-2.5 text-[11px] font-bold uppercase tracking-[.05em] text-[#6B7280] hover:text-[#374151] transition-colors ${className}`}
     >
       <span className="inline-flex items-center gap-1">

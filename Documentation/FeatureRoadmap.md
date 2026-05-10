@@ -19,12 +19,14 @@ Current state as of May 2026. Covers what is built, what is scaffolded but incom
 | Audit log export — single event CSV | `/audit-log` | Export Event button in detail drawer downloads one-row CSV |
 | SIEM Push preview | `/audit-log` | CEF/JSON format modal, simulated push confirmation; integration summary strip |
 | SIEM Integration Configuration | `/audit-log` | Splunk HEC config form (endpoint URL, HEC token with show/hide, index, source, sourcetype, format, batch size, SSL verify, enabled toggle); accessible via gear icon or "Configure →" link in the SIEM Push modal; config held in React state and reflected immediately |
-| Policy Engine — list | `/policy-engine` | Sortable table of all policies with violation counts and inline rule summary |
+| Policy Engine — list | `/policy-engine` | Sortable table of all policies with violation counts and inline rule summary (multi-condition aware) |
 | Policy Engine — toggle | `/policy-engine` | Enable/disable individual policies via API |
-| Policy Engine — create | `/policy-engine` | PolicyBuilder form with structured rule editor: field → operator → value → action; produces `rule_config` JSON |
-| Policy Engine — edit | `/policy-engine` | Pencil icon opens PolicyBuilder pre-filled with existing policy and rule condition |
+| Policy Engine — create | `/policy-engine` | PolicyBuilder with multi-condition trigger editor: multiple field/operator/value rows, AND/OR logic, live preview, action selector |
+| Policy Engine — edit | `/policy-engine` | Pencil icon opens PolicyBuilder pre-filled with existing policy and all rule conditions |
 | Policy Engine — delete | `/policy-engine` | Trash icon with inline confirmation (Delete? Yes / Cancel); calls `DELETE /api/v1/policies/:id` |
 | Policy Engine — page description | `/policy-engine` | Full-width description card with 4 feature tiles (enforcement, severity, enable/disable, violation tracking) |
+| Recommended Actions panel | `/` | 10 categorised governance recommendations (Policy & Compliance, Model Performance, Security & Access, Operational); priority-sorted rows with dot indicator, title, summary, badges |
+| Recommendation Drawer | `/` | Right fly-out (480px) with issue detail, pre-defined 5-step action checklist (interactive checkbox), and on-demand AI Analysis via Claude Sonnet 4.6 |
 | Board Report Builder | `/board-reports` | 2-step wizard: configure period/scope → preview report with AI summaries |
 | Board Report — AI section summaries | `/board-reports` | Claude auto-generates executive, compliance, performance, and risk prose on Step 2 load |
 | Board Report — AI assistant | `/board-reports` | Free-text prompt adds custom governed content to the report; topic guard rejects off-scope requests |
@@ -61,6 +63,17 @@ Current state as of May 2026. Covers what is built, what is scaffolded but incom
 | Page | Route | What needs to be built |
 |---|---|---|
 | Access Controls | `/access-controls` | RBAC management — users, roles, permissions (disabled in nav) |
+
+---
+
+## Recently completed (May 2026)
+
+| Feature | Where | Notes |
+|---|---|---|
+| Policy Engine — multi-condition trigger editor | `/policy-engine` | Multiple AND/OR condition rows, live preview, backwards-compatible with legacy `rule_config` |
+| Policy Engine — edit & delete | `/policy-engine` | Pencil/trash actions, inline delete confirmation, pre-filled PolicyBuilder |
+| Recommended Actions panel | `/` | 10 categorised recommendations with priority sorting and badges |
+| Recommendation Drawer | `/` | 5-step interactive checklist + on-demand Claude AI analysis per recommendation |
 
 ---
 

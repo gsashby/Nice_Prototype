@@ -1,6 +1,6 @@
 # Anthropic Claude API
 
-The application uses the **Anthropic Claude API** to power five AI features: executive dashboard summarisation, per-event causal analysis, board report narrative generation, AI report assistant, and NLQ hybrid query interpretation. All are implemented as server-side Next.js route handlers so the API key never reaches the browser.
+The application uses the **Anthropic Claude API** to power six AI features: executive dashboard summarisation, governance recommendation analysis, per-event causal analysis, board report narrative generation, AI report assistant, and NLQ hybrid query interpretation. All are implemented as server-side Next.js route handlers so the API key never reaches the browser.
 
 ---
 
@@ -77,7 +77,66 @@ Output format requested: 3–4 sentence executive summary followed by "Key Risks
 
 ---
 
-## Route 2 — `POST /api/explain-event`
+## Route 2 — `POST /api/recommend-action`
+
+**File:** `apps/web/src/app/api/recommend-action/route.ts`
+
+**Triggered by:** The **Get AI Analysis** button inside the `RecommendationDrawer` on the Governance Dashboard. Not called automatically — only fires on explicit user request.
+
+### Request body
+
+```json
+{
+  "recommendation": {
+    "id": "mp-1",
+    "category": "Model Performance",
+    "priority": "critical",
+    "title": "Bias scan failure rate exceeds 5% threshold on Autopilot",
+    "module": "Autopilot",
+    "detail": "Automated bias scans run on Autopilot's GPT-4 Turbo model...",
+    "actions": ["..."]
+  },
+  "dashboardContext": {
+    "governance_score": 87.4,
+    "policy_violations_24h": 3,
+    "alertCount": 5
+  }
+}
+```
+
+### Claude call
+
+```ts
+client.messages.create({
+  model: 'claude-sonnet-4-6',
+  max_tokens: 600,
+  messages: [{ role: 'user', content: prompt }],
+})
+```
+
+### Prompt structure
+
+The prompt instructs Claude to act as an AI governance advisor for NICE CXone Mpower. It includes the full recommendation (category, priority, title, module, detail) and the current dashboard context values. Claude is told to respond with **valid JSON only** — no prose outside the object.
+
+Requested output structure:
+```json
+{
+  "analysis": "2–3 sentence analysis of why this matters...",
+  "actions": ["Step 1...", "Step 2...", "Step 3...", "Step 4...", "Step 5..."]
+}
+```
+
+The route parses the JSON response with `JSON.parse`. If parsing fails (Claude returned prose instead of JSON), the raw text is returned as `analysis` with `actions: []`. The drawer only uses the `analysis` field — the pre-defined action steps from the recommendation data are shown in the checklist instead.
+
+### Response
+
+```json
+{ "analysis": "Plain-text governance analysis from Claude..." }
+```
+
+---
+
+## Route 3 — `POST /api/explain-event`
 
 **File:** `apps/web/src/app/api/explain-event/route.ts`
 
@@ -168,7 +227,7 @@ Anthropic SDK → claude-sonnet-4-6
 
 ---
 
-## Route 3 — `POST /api/report-summaries`
+## Route 4 — `POST /api/report-summaries`
 
 **File:** `apps/web/src/app/api/report-summaries/route.ts`
 
@@ -203,7 +262,7 @@ If the call fails, `ReportPreview` silently skips AI summaries — all data sect
 
 ---
 
-## Route 4 — `POST /api/report-addition`
+## Route 5 — `POST /api/report-addition`
 
 **File:** `apps/web/src/app/api/report-addition/route.ts`
 
@@ -231,7 +290,7 @@ client.messages.create({
 
 ---
 
-## Route 5 — `POST /api/nlq`
+## Route 6 — `POST /api/nlq`
 
 **File:** `apps/web/src/app/api/nlq/route.ts`
 
@@ -264,6 +323,7 @@ client.messages.create({
 | Route | `max_tokens` | Typical use |
 |---|---|---|
 | `/api/summarize` | 600 | ~300–450 tokens in practice |
+| `/api/recommend-action` | 600 | ~200–400 tokens; JSON output only |
 | `/api/explain-event` | 500 | ~250–400 tokens in practice |
 | `/api/report-summaries` | 800 | ~500–700 tokens (four sections) |
 | `/api/report-addition` | 600 | ~200–500 tokens per addition |

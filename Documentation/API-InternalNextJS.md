@@ -14,9 +14,11 @@ Provides typed wrappers around `fetch` that prepend `NEXT_PUBLIC_API_URL` (defau
 |---|---|---|
 | `apiGet<T>(path)` | `GET` | Data fetching in hooks and SIEM push handler |
 | `apiPost<T>(path, body)` | `POST` | Creating policies |
+| `apiPut<T>(path, body)` | `PUT` | Updating policies |
 | `apiPatch<T>(path, body)` | `PATCH` | Toggling policy enabled state |
+| `apiDelete(path)` | `DELETE` | Deleting policies |
 
-All three are `async`, return `Promise<T>`, and throw an `Error` with the response status text on failure.
+All are `async`, return `Promise<T>`, and throw an `Error` with the response status text on failure. `apiDelete` returns `Promise<void>`.
 
 ---
 
@@ -84,19 +86,33 @@ register.mutate({ name: 'GPT-4o', type: 'llm', version: '1.0', status: 'active' 
 
 Refetch interval: 60 seconds.
 
-### `usePolicies()` / `useTogglePolicy()`
+### `usePolicies()` / `useTogglePolicy()` / `useCreatePolicy()` / `useUpdatePolicy()` / `useDeletePolicy()`
 
 **File:** `apps/web/src/hooks/usePolicies.ts`  
 **Calls:**
 - `GET /api/v1/policies` (list)
-- `PATCH /api/v1/policies/:id/toggle` (toggle)
+- `POST /api/v1/policies` (create)
+- `PUT /api/v1/policies/:id` (update)
+- `DELETE /api/v1/policies/:id` (delete)
+- `PATCH /api/v1/policies/:id/toggle` (toggle enabled state)
 
-`useTogglePolicy` is a `useMutation` that calls `apiPatch` and then invalidates the `['policies']` query key to trigger a refetch.
+All mutations invalidate the `['policies']` TanStack Query cache on success, triggering an automatic list refetch.
 
 ```ts
 const toggle = useTogglePolicy();
 toggle.mutate({ id: policy.id, enabled: !policy.enabled });
+
+const create = useCreatePolicy();
+create.mutate({ name, description, severity, enabled: true, ruleConfig });
+
+const update = useUpdatePolicy();
+update.mutate({ id, name, description, severity, enabled, ruleConfig });
+
+const del = useDeletePolicy();
+del.mutate(policy.id);
 ```
+
+The `api-client.ts` module also exports `apiPut<T>` and `apiDelete` helpers used by `useUpdatePolicy` and `useDeletePolicy` respectively.
 
 ---
 
@@ -203,9 +219,19 @@ All route handlers call the Anthropic SDK server-side. The `ANTHROPIC_API_KEY` n
 
 **File:** `apps/web/src/app/api/summarize/route.ts`  
 Used by: Governance Dashboard "Summarize with AI" button  
-**Model:** `claude-sonnet-4-6`, 500 max tokens  
+**Model:** `claude-sonnet-4-6`, 600 max tokens  
 **Input:** `{ governance_score, decisions_today, policy_violations, compliance_coverage, alerts, models }`  
 **Output:** `{ summary: string }` — plain-text executive summary
+
+### `POST /api/recommend-action`
+
+**File:** `apps/web/src/app/api/recommend-action/route.ts`  
+Used by: `RecommendationDrawer` — "Get AI Analysis" button  
+**Model:** `claude-sonnet-4-6`, 600 max tokens  
+**Input:** `{ recommendation: Recommendation, dashboardContext: { governance_score, policy_violations_24h, alertCount } }`  
+**Output:** `{ analysis: string }` — narrative governance analysis of the selected recommendation
+
+Only called on explicit user request — not on drawer open. The route requests JSON output from Claude; on parse failure the raw response text is returned as `analysis`.
 
 ### `POST /api/explain-event`
 
