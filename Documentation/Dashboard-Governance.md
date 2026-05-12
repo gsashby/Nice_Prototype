@@ -34,7 +34,13 @@ The Governance Dashboard is the landing page of the AI Trust Center. It gives a 
 
 Component: `NlqPanel` (`components/nlq/NlqPanel.tsx`)
 
-Embedded at the top of the dashboard. Always shows the search input and five suggested query chips. The query results card appears below only after a query is submitted and can be collapsed/expanded by clicking the "Query Results" header. Submitting a new query re-expands results automatically.
+Embedded at the top of the dashboard. Always shows the search input and two groups of suggested query chips (filter queries and AI governance questions). Results appear below the input after a query is submitted:
+
+- **Filter queries** → collapsible event table with optional context banner
+- **Governance knowledge questions** → text answer card (no table)
+- **Off-topic queries** → yellow warning card with rejection reason
+
+The results card can be collapsed/expanded by clicking its header. Submitting a new query re-expands results automatically.
 
 See `Documentation/Dashboard-NLQ.md` for full NLQ documentation.
 

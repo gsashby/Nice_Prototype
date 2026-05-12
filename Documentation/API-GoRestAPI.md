@@ -155,6 +155,8 @@ Returns a paginated, filtered list of audit events. This is the most heavily use
 | `event_type` | string | — | Exact match on `event_type` (e.g. `inference`, `policy_check`, `bias_scan`, `session_start`, `model_load`) |
 | `outcome` | string | — | Exact match on `outcome` (e.g. `allowed`, `blocked`, `flagged`, `auto-applied`) |
 | `model_id` | UUID string | — | Exact match on `model_id` |
+| `model_name` | string | — | `ILIKE` match on the joined `ai_models.name` (e.g. `Autopilot`, `GPT-4`) |
+| `event_type` | string | — | Exact match — also accepts `session_end` |
 | `search` | string | — | `ILIKE` match against `action`, `agent_id`, and `session_id` |
 
 **Response**

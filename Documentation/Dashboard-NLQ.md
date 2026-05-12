@@ -3,7 +3,7 @@
 **Location:** Embedded at the top of the Governance Dashboard (`/`)  
 **Component:** `apps/web/src/components/nlq/NlqPanel.tsx`
 
-The NLQ panel allows users to ask plain-English questions about audit data without leaving the Governance Dashboard. The standalone `/nlq` route has been removed — the full feature now lives in `NlqPanel`.
+The NLQ panel allows users to ask plain-English questions about AI governance data without leaving the Governance Dashboard. The standalone `/nlq` route has been removed — the full feature lives in `NlqPanel`.
 
 ---
 
@@ -11,21 +11,40 @@ The NLQ panel allows users to ask plain-English questions about audit data witho
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ Natural Language Query                                        │
-│ "Ask questions about your governance data in plain English"  │
+│ CXone Query Explorer                                         │
+│ "Ask questions about your AI governance data…"              │
 ├─────────────────────────────────────────────────────────────┤
 │ [🔍 Ask anything about your governance data…       Query ]  │
 ├─────────────────────────────────────────────────────────────┤
-│ Suggested Queries                                            │
-│ [Show me all blocked events] [Show flagged violations…] …   │
+│ FILTER QUERIES                                               │
+│ [Show blocked events today] [Show bias scan events…] …      │
+│ AI GOVERNANCE QUESTIONS                                      │
+│ [How many blocked events this week?] [Explain governance…]  │
 └─────────────────────────────────────────────────────────────┘
 
-After a query is submitted:
+After a filter query:
 
 ┌─────────────────────────────────────────────────────────────┐
 │ Query Results  [outcome: blocked] [period: last 7 days]  ▲  │
 ├─────────────────────────────────────────────────────────────┤
-│  Sortable event table (collapses when header is clicked)     │
+│  (optional) ℹ Blue context banner for analytical queries    │
+├─────────────────────────────────────────────────────────────┤
+│  Sortable event table (collapses when header is clicked)    │
+└─────────────────────────────────────────────────────────────┘
+
+After a governance knowledge question:
+
+┌─────────────────────────────────────────────────────────────┐
+│ Governance Answer  ✨ AI  [topic: blocked] [topic: flagged] │
+├─────────────────────────────────────────────────────────────┤
+│  Plain-text answer from Claude (no table)                   │
+└─────────────────────────────────────────────────────────────┘
+
+After an off-topic query:
+
+┌─────────────────────────────────────────────────────────────┐
+│ ⚠ Outside governance scope                                  │
+│   [rejection reason from Claude]              [Clear]       │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -40,49 +59,83 @@ Top-level panel component. Owns all NLQ state:
 | State | Type | Description |
 |---|---|---|
 | `query` | `string` | Current input value |
-| `result` | `NlqResult \| null` | Parsed filters + tags; `null` before first query or after Clear |
+| `result` | `NlqResult \| null` | Parsed filters + tags + optional answer/context; `null` before first query or after Clear |
+| `offTopicMessage` | `string \| null` | Rejection reason from Claude when query is outside governance scope |
 | `resultsCollapsed` | `boolean` | Whether the results card body is hidden; resets to `false` on each new query |
+| `aiLoading` | `boolean` | `true` while waiting for the AI response |
 
 Renders:
 1. A white card with header, `NlqInput`, and `NlqSuggestions` — always visible
-2. `NlqResultTable` (with collapse props) — appears only when `result !== null`
+2. Yellow off-topic warning card — appears when `offTopicMessage` is set
+3. `NlqResultTable` (with collapse props) — appears only when `result !== null`
 
 ### `NlqInput`
 
-Full-width text input with a search icon and blue **Query** button. Submits on Enter or button click.
+Full-width text input with a search icon and blue **Query** button. Shows "Thinking…" with a spinner while `loading` is true. Submits on Enter or button click.
 
 ### `NlqSuggestions`
 
-Five hardcoded suggestion chips. Clicking one runs the query immediately:
+Two groups of suggestion chips:
 
-- Show me all blocked events
+**Filter Queries** (blue border, white background) — hit the regex fast path, no AI call:
+- Show blocked events today
 - Show flagged policy violations this week
-- Show all inference events
-- Show bias scan events last 30 days
-- Show allowed events today
+- Show all inference events last 30 days
+- Show bias scan events yesterday
+- Show allowed events this month
+- Show Autopilot model events
+- Show session end events last 7 days
+- Show auto-applied events last 90 days
+- Show top 50 blocked events
+- Show non-compliant events this quarter
+
+**AI Governance Questions** (purple border, lavender background) — always call the AI:
+- How many blocked events were there this week?
+- Which model has the most policy violations?
+- Why are bias scan events important for governance?
+- What is the difference between blocked and flagged outcomes?
+- Explain what a governance score measures
+- What does the EU AI Act require for AI monitoring?
+- How does bias detection work in CXone?
+- Compare inference events vs policy check events
 
 ### `NlqResultTable`
 
 Data source: `useAuditLog(result.filters)` → `GET /api/v1/audit-log`
 
-Accepts two additional props for embedded use:
+Renders in one of two modes:
+
+#### Text answer mode (`result.answer` is set)
+
+Shows a "Governance Answer" card with:
+- ✨ AI badge (purple)
+- Topic tags as blue pills
+- Clear button
+- Claude's plain-text governance answer
+
+No event table is shown.
+
+#### Event table mode (`result.answer` is not set)
+
+Accepts collapse props for embedded use:
 
 | Prop | Type | Effect |
 |---|---|---|
 | `collapsed` | `boolean` | Hides the table body; header remains visible |
 | `onToggleCollapsed` | `() => void` | Clicking the header row toggles collapse; chevron icon indicates state |
 
-#### Header
-
-- "Query Results" title
-- Event count (hidden when collapsed)
-- Interpreted-as tags (blue pills): e.g. `outcome: blocked`, `period: last 7 days`
-- **Clear** button — resets result and clears input (stopPropagation prevents accidental collapse toggle)
+**Header**
+- "Query Results" title and event count (hidden when collapsed)
+- ✨ AI badge when `source === 'ai'`
+- Interpreted-as tags (blue pills): e.g. `outcome: blocked`, `period: last 7 days`, `model: Autopilot`
+- **Clear** button (stopPropagation prevents accidental collapse toggle)
 - Chevron icon (▲ expanded / ▼ collapsed)
 
-#### Table columns
+**Context banner** (optional, appears between header and table)
 
-All sortable client-side via `useSortable`:
+A blue info bar shown when `result.context` is set — used for analytical questions where Claude added an explanation of what the data shows.
+
+**Table columns** — all sortable client-side via `useSortable`:
 
 | Column | Field | Format |
 |---|---|---|
@@ -94,11 +147,9 @@ All sortable client-side via `useSortable`:
 | Outcome | `outcome` | Colour-coded badge |
 | Policy Violations | `policy_violations` | Blue pills; `—` if none |
 
-#### Row drill-down
+**Row drill-down:** clicking any row opens `AuditLogDrawer` — full event detail with session timeline and Explain with AI.
 
-Clicking any row opens `AuditLogDrawer` — full event detail with session timeline and Explain with AI.
-
-#### States
+**Loading states:**
 
 | State | Display |
 |---|---|
@@ -110,56 +161,19 @@ Clicking any row opens `AuditLogDrawer` — full event detail with session timel
 
 ## Query interpretation — hybrid approach
 
-NLQ uses a two-stage hybrid: a synchronous regex parser runs first; Claude is only called when the regex fails to find any structured filters.
+See `Documentation/NLQ.md` for the full technical specification. Summary:
 
-### Stage 1 — Regex parser (`lib/parseNlq.ts`)
+1. `parseNlq()` runs synchronously — classifies query as `'filter'` or `'question'` and extracts structured filters via regex.
+2. `shouldUseAI()` in `NlqPanel` returns `true` when: regex only produced a raw search term, OR `kind === 'question'`.
+3. The AI route uses three tools: `set_filters` (data queries), `answer_question` (knowledge questions), `reject_query` (off-topic).
+4. Off-topic queries get a yellow warning; knowledge questions get a text card; data queries get the event table.
 
-Pure function, no network call, responds in <1 ms. Returns `source: 'regex'`.
+### Source badges
 
-Maps plain English to an `AuditLogFilters` object using regex matching (first-match-wins per category):
-
-| Category | Keywords detected | Filter set |
+| Badge | Colour | Meaning |
 |---|---|---|
-| Outcome | `blocked` | `outcome: blocked` |
-| Outcome | `flagged`, `violation`, `policy` | `outcome: flagged` |
-| Outcome | `allowed`, `approved` | `outcome: allowed` |
-| Event type | `inference` | `eventType: inference` |
-| Event type | `policy check` | `eventType: policy_check` |
-| Event type | `bias` | `eventType: bias_scan` |
-| Event type | `session` | `eventType: session_start` |
-| Event type | `model load` | `eventType: model_load` |
-| Time | `today`, `last 24 hours` | `startDate`/`endDate` = today |
-| Time | `last 7 days`, `this week`, `week` | `startDate` = 7 days ago |
-| Time | `last 30 days`, `this month`, `month` | `startDate` = 30 days ago |
-| Fallback | (no keywords matched) | `search: <raw query>` |
-
-**Known limitation:** Multiple keywords from the same category in one query only apply the first match.
-
-### Stage 2 — AI fallback (`POST /api/nlq` → Claude Sonnet 4.6)
-
-Triggered only when the regex produced nothing but the raw search fallback (i.e. `tags = ['search: "..."]'`). Returns `source: 'ai'`.
-
-The route calls Claude with tool use (`tool_choice: { type: 'tool', name: 'set_filters' }`), forcing a structured JSON response every time. Claude receives:
-- The full set of valid outcomes and event types
-- Today's date
-- Instructions to apply multiple filters simultaneously and to only set fields clearly implied by the query
-
-If the AI call fails for any reason (network error, API key missing, rate limit), `NlqPanel` silently falls back to the regex result so the feature never breaks entirely.
-
-#### What AI unlocks vs. regex alone
-
-| Query | Regex result | AI result |
-|---|---|---|
-| `"risky events this week"` | `search: "risky events this week"` | `outcome: blocked, period: last 7 days` |
-| `"blocked inference events yesterday"` | `outcome: blocked` (drops type + time) | `outcome: blocked, type: inference, period: yesterday` |
-| `"dangerous decisions last month"` | `search: "dangerous decisions last month"` | `outcome: blocked, period: last 30 days` |
-| `"show me all blocked events"` | `outcome: blocked` ✓ fast path, no AI call | — |
-
-### Source badge
-
-When results are shown, a small badge in the "Query Results" header indicates how the query was interpreted:
-- **✨ AI** (purple) — Claude interpreted the query
-- No badge — regex matched directly (fast path)
+| ✨ AI | Purple `#7C3AED` | Claude interpreted the query (filter or answer) |
+| _(none)_ | — | Regex matched directly — fast path, no AI call |
 
 ---
 
@@ -168,5 +182,5 @@ When results are shown, a small badge in the "Query Results" header indicates ho
 | Hook / function | API endpoint | Used by |
 |---|---|---|
 | `parseNlq(query)` | None — pure function | `NlqPanel`, fast path |
-| `POST /api/nlq` | Next.js route → Claude Sonnet 4.6 | `NlqPanel`, AI fallback path |
-| `useAuditLog(result.filters)` | `GET /api/v1/audit-log` | `NlqResultTable` |
+| `POST /api/nlq` | Next.js route → Claude Sonnet 4.6 | `NlqPanel`, AI path |
+| `useAuditLog(result.filters)` | `GET /api/v1/audit-log` | `NlqResultTable` (event table mode only) |

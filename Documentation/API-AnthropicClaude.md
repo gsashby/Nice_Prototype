@@ -294,26 +294,46 @@ client.messages.create({
 
 **File:** `apps/web/src/app/api/nlq/route.ts`
 
-**Triggered by:** `NlqPanel` when the regex parser fails to find structured filters (only the raw `search:` fallback tag is produced).
+**Triggered by:** `NlqPanel` when: (a) the regex parser only produced a raw `search:` fallback tag, or (b) the query is classified as analytical/conversational (`kind === 'question'`).
 
-Uses **tool use** with `tool_choice: { type: 'tool', name: 'set_filters' }` to force a structured JSON response matching the `AuditLogFilters` schema — no hallucinated field names are possible. Today's date is injected into the prompt to resolve relative time references ("yesterday", "last week").
+Uses **tool use** with `tool_choice: { type: 'auto' }` and three tools. Claude selects the appropriate tool based on the query type. A system prompt restricts all responses to AI governance topics only.
+
+### Three tools
+
+| Tool | When used | Response shape |
+|---|---|---|
+| `set_filters` | Data retrieval queries; analytical "how many…" questions | `{ kind: 'filter', filters, tags, context? }` |
+| `answer_question` | Governance knowledge questions (definitions, regulations, concepts) | `{ kind: 'question', answer, tags, filters: { page:1, pageSize:25 } }` |
+| `reject_query` | Queries unrelated to AI governance | HTTP 400 `{ error: 'off_topic', message }` |
+
+### Governance scope (system prompt)
+
+Restricts Claude to: AI model audit events, governance metrics, policy compliance, bias/fairness monitoring, AI regulatory frameworks (GDPR, EU AI Act, ISO 42001, SOC 2), and CXone AI modules (Autopilot, Copilot, Mpower). Any other topic triggers `reject_query`.
 
 ### Claude call
 
 ```ts
 client.messages.create({
   model: 'claude-sonnet-4-6',
-  max_tokens: 256,
-  tools: [{ name: 'set_filters', input_schema: { /* AuditLogFilters schema */ } }],
-  tool_choice: { type: 'tool', name: 'set_filters' },
-  messages: [{ role: 'user', content: prompt }],
+  max_tokens: 512,
+  tools: [set_filters, answer_question, reject_query],
+  tool_choice: { type: 'auto' },
+  system: '...governance scope restriction...',
+  messages: [{ role: 'user', content: `Today: ${date}\n\nUser query: "${query}"` }],
 })
 ```
 
-### Response
+### Response examples
 
 ```json
-{ "filters": { "outcome": "blocked", "startDate": "2026-05-08T00:00:00Z" }, "tags": ["outcome: blocked", "period: yesterday"], "source": "ai" }
+// set_filters — data query
+{ "kind": "filter", "filters": { "outcome": "blocked", "startDate": "2026-05-05T00:00:00Z" }, "tags": ["outcome: blocked", "period: last 7 days"], "source": "ai" }
+
+// set_filters — analytical query with context
+{ "kind": "filter", "filters": { "outcome": "blocked", "startDate": "2026-05-05T00:00:00Z" }, "tags": ["outcome: blocked", "period: last 7 days"], "context": "Showing blocked events from the last 7 days to answer your count question.", "source": "ai" }
+
+// answer_question — knowledge query
+{ "kind": "question", "answer": "Blocked means the AI output was prevented...", "tags": ["topic: outcomes"], "filters": { "page": 1, "pageSize": 25 }, "source": "ai" }
 ```
 
 ---
@@ -327,6 +347,6 @@ client.messages.create({
 | `/api/explain-event` | 500 | ~250–400 tokens in practice |
 | `/api/report-summaries` | 800 | ~500–700 tokens (four sections) |
 | `/api/report-addition` | 600 | ~200–500 tokens per addition |
-| `/api/nlq` | 256 | ~50–150 tokens (structured output only) |
+| `/api/nlq` | 512 | ~50–300 tokens (structured output; answer_question responses are longer) |
 
 Each call makes exactly one API request to Anthropic. There is no streaming, caching, or batching.
