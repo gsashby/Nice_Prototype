@@ -18,6 +18,7 @@ export function useAuditLog(filters: AuditLogFilters) {
     ...(filters.eventType && { event_type: filters.eventType }),
     ...(filters.outcome && { outcome: filters.outcome }),
     ...(filters.modelId && { model_id: filters.modelId }),
+    ...(filters.modelName && { model_name: filters.modelName }),
     ...(filters.search && { search: filters.search }),
   });
 

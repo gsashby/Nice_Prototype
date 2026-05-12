@@ -56,6 +56,11 @@ func (r *AuditRepo) List(ctx context.Context, tenantID string, f models.AuditLog
 		args = append(args, f.ModelID)
 		n++
 	}
+	if f.ModelName != "" {
+		where = append(where, fmt.Sprintf("m.name ILIKE $%d", n))
+		args = append(args, "%"+f.ModelName+"%")
+		n++
+	}
 	if f.Search != "" {
 		where = append(where, fmt.Sprintf("(ae.action ILIKE $%d OR ae.agent_id ILIKE $%d OR ae.session_id ILIKE $%d)", n, n, n))
 		args = append(args, "%"+f.Search+"%")

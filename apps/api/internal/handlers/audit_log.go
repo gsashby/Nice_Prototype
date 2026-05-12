@@ -29,6 +29,7 @@ func (h *AuditLogHandler) List(c *fiber.Ctx) error {
 		EventType: c.Query("event_type"),
 		Outcome:   c.Query("outcome"),
 		ModelID:   c.Query("model_id"),
+		ModelName: c.Query("model_name"),
 		Search:    c.Query("search"),
 		Page:      page,
 		PageSize:  pageSize,

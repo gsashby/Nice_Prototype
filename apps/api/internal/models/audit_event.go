@@ -27,6 +27,7 @@ type AuditLogFilter struct {
 	EventType string
 	Outcome   string
 	ModelID   string
+	ModelName string
 	Search    string
 	Page      int
 	PageSize  int

@@ -20,6 +20,7 @@ export type AuditLogFilters = {
   eventType?: string;
   outcome?: string;
   modelId?: string;
+  modelName?: string;
   search?: string;
   page: number;
   pageSize: number;

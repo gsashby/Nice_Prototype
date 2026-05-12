@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { format } from 'date-fns';
-import { ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
+import { ChevronDown, ChevronUp, Sparkles, Info } from 'lucide-react';
 import { useAuditLog } from '@/hooks/useAuditLog';
 import LoadingSkeleton from '@/components/shared/LoadingSkeleton';
 import AuditLogDrawer from '@/components/audit-log/AuditLogDrawer';
@@ -38,6 +38,55 @@ function EmptyState() {
   );
 }
 
+function TagRow({ result, onClear, onToggleCollapsed, collapsed }: Props & { collapsed?: boolean }) {
+  return (
+    <div className="flex flex-wrap items-center gap-1.5 justify-end">
+      {result?.source === 'ai' && (
+        <span className="inline-flex items-center gap-1 rounded-full bg-[#F5F3FF] px-2 py-0.5 text-[11px] font-semibold text-[#7C3AED]">
+          <Sparkles className="h-2.5 w-2.5" />
+          AI
+        </span>
+      )}
+      {result?.tags.map((tag) => (
+        <span key={tag} className="inline-flex items-center rounded-full bg-[#EFF6FF] px-2 py-0.5 text-[11px] font-semibold text-[#2563EB]">
+          {tag}
+        </span>
+      ))}
+      {onClear && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onClear(); }}
+          className="inline-flex items-center rounded-[5px] border border-[#D1D5DB] bg-white font-semibold text-[#6B7280] hover:bg-[#F9FAFB] hover:text-[#374151] transition-all"
+          style={{ padding: '3px 10px', fontSize: 12 }}
+        >
+          Clear
+        </button>
+      )}
+      {onToggleCollapsed && (
+        collapsed
+          ? <ChevronDown className="h-4 w-4 text-[#9CA3AF]" />
+          : <ChevronUp className="h-4 w-4 text-[#9CA3AF]" />
+      )}
+    </div>
+  );
+}
+
+// Renders a text answer for governance knowledge questions
+function AnswerCard({ result, onClear }: { result: NlqResult; onClear?: () => void }) {
+  return (
+    <div className="overflow-hidden rounded-lg border border-[#E5E7EB] bg-white shadow-[0_1px_3px_rgba(0,0,0,.06)]">
+      <div style={{ padding: '14px 16px', borderBottom: '1px solid #E5E7EB' }}>
+        <div className="flex items-center justify-between">
+          <div className="text-[13.5px] font-bold text-[#111827]">Governance Answer</div>
+          <TagRow result={result} onClear={onClear} />
+        </div>
+      </div>
+      <div className="p-4">
+        <p className="text-[13.5px] leading-relaxed text-[#374151]">{result.answer}</p>
+      </div>
+    </div>
+  );
+}
+
 export default function NlqResultTable({ result, onClear, collapsed, onToggleCollapsed }: Props) {
   const { data, isLoading, isError } = useAuditLog(
     result?.filters ?? { page: 1, pageSize: 25 },
@@ -49,6 +98,9 @@ export default function NlqResultTable({ result, onClear, collapsed, onToggleCol
   const { sorted, sort, toggle } = useSortable<AuditEvent>(events);
 
   if (!result) return <EmptyState />;
+
+  // Text answer — no event table
+  if (result.answer) return <AnswerCard result={result} onClear={onClear} />;
 
   return (
     <>
@@ -66,37 +118,19 @@ export default function NlqResultTable({ result, onClear, collapsed, onToggleCol
                 <div className="text-[11.5px] text-[#9CA3AF]">{total.toLocaleString()} events matched — click any row for full detail</div>
               )}
             </div>
-            <div className="flex flex-wrap items-center gap-1.5 justify-end">
-              {result.source === 'ai' && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-[#F5F3FF] px-2 py-0.5 text-[11px] font-semibold text-[#7C3AED]">
-                  <Sparkles className="h-2.5 w-2.5" />
-                  AI
-                </span>
-              )}
-              {result.tags.map((tag) => (
-                <span key={tag} className="inline-flex items-center rounded-full bg-[#EFF6FF] px-2 py-0.5 text-[11px] font-semibold text-[#2563EB]">
-                  {tag}
-                </span>
-              ))}
-              {onClear && (
-                <button
-                  onClick={(e) => { e.stopPropagation(); onClear(); }}
-                  className="inline-flex items-center rounded-[5px] border border-[#D1D5DB] bg-white font-semibold text-[#6B7280] hover:bg-[#F9FAFB] hover:text-[#374151] transition-all"
-                  style={{ padding: '3px 10px', fontSize: 12 }}
-                >
-                  Clear
-                </button>
-              )}
-              {onToggleCollapsed && (
-                collapsed
-                  ? <ChevronDown className="h-4 w-4 text-[#9CA3AF]" />
-                  : <ChevronUp className="h-4 w-4 text-[#9CA3AF]" />
-              )}
-            </div>
+            <TagRow result={result} onClear={onClear} onToggleCollapsed={onToggleCollapsed} collapsed={collapsed} />
           </div>
         </div>
 
-        {/* Body — hidden when collapsed */}
+        {/* Context banner for analytical questions */}
+        {!collapsed && result.context && (
+          <div className="flex items-center gap-2 border-b border-[#E5E7EB] bg-[#F0F9FF] px-4 py-2">
+            <Info className="h-3.5 w-3.5 shrink-0 text-[#0284C7]" />
+            <p className="text-[12px] text-[#0369A1]">{result.context}</p>
+          </div>
+        )}
+
+        {/* Body */}
         {!collapsed && (
           isLoading ? (
             <div className="space-y-px p-4">
